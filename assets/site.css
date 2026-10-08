@@ -81,6 +81,7 @@ main { display: block; }
 /* Footer */
 .site-footer { border-top: 1px solid var(--mist); padding: 2.5rem 0 3rem; margin-top: 2rem; font-size: 0.9rem; color: var(--fine); }
 .site-footer p { margin: 0 0 0.5rem; max-width: none; }
+.site-footer address.postal { max-width: none; line-height: 1.55; }
 .site-footer a { color: var(--plum); }
 .footer-links { list-style: none; padding: 0; margin: 0 0 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; max-width: none; }
 
