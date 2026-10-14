@@ -2111,6 +2111,8 @@ body[data-view="play"] .tut-row > .tut-prompt { flex: 1 1 auto; margin: 0; }
 .hint-chooser[hidden] { display: none !important; }
 /* 1.0.2 (4): scrim under the Hint chooser: a tap outside closes it; gone (display:none) when closed, so nothing blocks the board */
 .hint-chooser-scrim { position: fixed; inset: 0; z-index: 69; background: rgba(30, 22, 51, .28); touch-action: none; }
+/* QA: the play column rule (#app > * width/max-width: var(--col)) clipped the scrim ~30px short of the right edge at 320 */
+body[data-view] #app > .hint-chooser-scrim, .hint-chooser-scrim { position: fixed !important; inset: 0 !important; width: auto !important; max-width: none !important; height: auto !important; margin: 0 !important; }
 .hint-chooser-scrim[hidden] { display: none !important; }
 .hint-chooser .hint-choice { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; }
 .hint-chooser .hint-choice-sub { font-weight: 700; opacity: .8; }
@@ -2216,6 +2218,9 @@ body[data-view="play"] .win-banner .win-card .win-row .btn { width: auto; max-wi
 body[data-view="play"] .win-banner .win-card .win-row > #win-next:only-child,
 body[data-view="play"] .win-banner .win-card .win-row > #win-next:has(+ #win-home[hidden]) { width: 100%; }
 .win-row:has(#win-home:not([hidden])) > #win-next { padding: 0 14px; white-space: nowrap; }
+/* 1.0.2 QA NB-E: tight chooser for short screens (it sits above the board, over the top bar) */
+.hint-chooser.is-tight { gap: 6px; padding: 6px 58px 6px 6px !important; border-width: 2px; }
+.hint-chooser.is-tight .hint-choice, .hint-chooser.is-tight #btn-ad-hint { min-height: 44px !important; }
 </style>
   
   
@@ -2486,7 +2491,7 @@ const GAME_NAME_PENDING = false;
 const BUILD_NUMBER = 22;
 // Build version stamped on every playtest event. scripts/bundle.js replaces 'dev' with
 // "<YYYY-MM-DD>.game1-r<BUILD_NUMBER>+<content hash>" in the built file.
-const BUILD_VERSION = "2026-10-14.game1-r22+70ba244";
+const BUILD_VERSION = "2026-10-14.game1-r22+f782748";
 // Store builds set RELEASE=true to ignore every dev URL hook (?dev/?today/?level/?mode/?debug).
 // Keep false for QA builds that still need the exact-dev sandbox.
 const RELEASE = false;
@@ -7460,6 +7465,8 @@ function hideAdTip() {
 }
 const AD_LOAD_FAILS = new Set(['failed_to_load', 'load_timeout', 'load_rejected', 'unavailable']);
 const AD_NO_FILL_MSG = 'No ad available right now. Try again later.';
+// 1.0.2 QA NB-E (Families): a tap on the ad button within this long of the chooser opening is ignored (needs a deliberate tap)
+const AD_TAP_GUARD_MS = 400;
 function rewardedHint({ fromChooser = false } = {}) {
   if (st.adBusy || st.mode === 'daily' || !rewardedHintAllowed(adCtx())) return; // rc3: never in Daily
   st.adBusy = true; syncAdHint();
@@ -7478,7 +7485,7 @@ function rewardedHint({ fromChooser = false } = {}) {
       const out = lastAdOutcome().rewarded;
       if (!ok && AD_LOAD_FAILS.has(out) && current() && !st.won && st.view === 'play') {
         if (!st.hintChooserOpen) openHintChooser();
-        const m = $('hint-chooser-msg'); if (m) { m.textContent = AD_NO_FILL_MSG; m.hidden = false; }
+        const m = $('hint-chooser-msg'); if (m) { m.textContent = AD_NO_FILL_MSG; m.hidden = false; placeHintChooser(); }
       } else closeHintChooser();
     }
   });
@@ -7503,7 +7510,7 @@ async function initNative() {
     const cancel = () => clearTimeout(lp);
     b.addEventListener('pointerup', cancel); b.addEventListener('pointerleave', cancel); b.addEventListener('pointercancel', cancel);
     b.addEventListener('contextmenu', (e) => { e.preventDefault(); showAdTip(); });
-    b.addEventListener('click', (e) => { if (longPressed) { longPressed = false; e.preventDefault(); return; } hideAdTip(); const inChooser = !!st.hintChooserOpen; const m = $('hint-chooser-msg'); if (m) m.hidden = true; rewardedHint({ fromChooser: inChooser }); });
+    b.addEventListener('click', (e) => { if (longPressed) { longPressed = false; e.preventDefault(); return; } hideAdTip(); const inChooser = !!st.hintChooserOpen; if (inChooser && performance.now() - (st.hintChooserOpenedAt || 0) < AD_TAP_GUARD_MS) { e.preventDefault(); return; } const m = $('hint-chooser-msg'); if (m) m.hidden = true; rewardedHint({ fromChooser: inChooser }); });
   }
   addPrivacySection();
   addFooterPolicyLink();
@@ -7821,6 +7828,21 @@ function onHintButton() {
   if (o.ad) return rewardedHint();
   return showHint();
 }
+// 1.0.2 Chief NB-F/NB-G: the chooser sits in the band between the top bar (‹, ?, rule-strip links) and the shape
+// picker, >= CHOOSER_CLEAR px from every target of both, centred in it (over the board, which the scrim blocks; every
+// chooser button also ignores taps for AD_TAP_GUARD_MS after opening). Re-placed when its message grows it (no-fill).
+const CHOOSER_CLEAR = 44;
+function placeHintChooser() {
+  const c = $('hint-chooser'); if (!c || c.hidden) return;
+  c.classList.remove('is-tight');
+  const tops = [...document.querySelectorAll('#topbar button, #topbar a, #rule-strip a, #rule-strip button')].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+  const picks = [...document.querySelectorAll('#picker .pick, #picker button')].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+  const bandTop = (tops.length ? Math.max(...tops.map((r) => r.bottom)) : 0) + CHOOSER_CLEAR;
+  const bandBot = (picks.length ? Math.min(...picks.map((r) => r.top)) : window.innerHeight) - CHOOSER_CLEAR;
+  let h = c.getBoundingClientRect().height;
+  if (h > bandBot - bandTop) { c.classList.add('is-tight'); h = c.getBoundingClientRect().height; }
+  c.style.top = `${Math.round(Math.max(bandTop, bandTop + (bandBot - bandTop - h) / 2))}px`;
+}
 function openHintChooser() {
   const c = $('hint-chooser'); if (!c) return;
   syncAdHint();
@@ -7831,12 +7853,8 @@ function openHintChooser() {
   const col = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--col')) || (ctl ? ctl.width : 288);
   c.style.width = `${col}px`;
   c.style.left = `${Math.round(ctl ? ctl.left : (window.innerWidth - col) / 2)}px`;
-  const h = c.getBoundingClientRect().height;
-  // 1.0.2 QA wip-b: sit BELOW the board (over the picker / tools, which the scrim blocks anyway) so no board cell is
-  // under the chooser; only if that does not fit, the old place above the tool row.
-  const bd = $('board')?.getBoundingClientRect();
-  const below = bd ? Math.round(bd.bottom + 6) : null;
-  c.style.top = `${below != null && below + h <= window.innerHeight - 4 ? below : Math.max(8, Math.round((ctl ? ctl.top : window.innerHeight) - h - 8))}px`;
+  placeHintChooser();
+  st.hintChooserOpenedAt = performance.now();
   // 1.0.2 (4): a scrim under the chooser takes every tap outside it and closes it (before, the chooser covered the
   // board's bottom rows + picker at 320 and a tap there hit "Use a hint"; a tap on Hint re-opened it).
   const sc = $('hint-chooser-scrim'); if (sc) sc.hidden = false;
@@ -7983,6 +8001,9 @@ function tlBack() {
   lastBackAt = now;
   if (st.hintChooserOpen) { closeHintChooser(); return true; }
   if ($('ad-hint-tip') && !$('ad-hint-tip').hidden) { $('ad-hint-tip').hidden = true; return true; }
+  // 1.0.2 QA wip-c (agegate build): the age gate / consent sheet are mandatory first-run steps (div role=dialog, not
+  // <dialog>): Back stays on them (handled, nothing to close) instead of answering "false" and exiting the app.
+  for (const id of ['age-gate', 'consent']) { const g = $(id); if (g && !g.hidden && g.getClientRects().length) return true; }
   const dlg = [...document.querySelectorAll('dialog[open]')].pop();
   if (dlg) { dlg.close(); return true; }
   if (st.view === 'play') { showView('levels', 'back'); return true; }
@@ -7999,6 +8020,8 @@ function initLevelsPage() {
     if (goMode('random')) showView('play', 'random');
   });
   window.tlBack = tlBack;
+  // 1.0.2 Chief NB-F: every chooser button needs a deliberate tap (none act within AD_TAP_GUARD_MS of opening)
+  $('hint-chooser')?.addEventListener('click', (e) => { if (st.hintChooserOpen && e.target.closest('button') && performance.now() - (st.hintChooserOpenedAt || 0) < AD_TAP_GUARD_MS) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
 }
 
 // ---------------------------------------------------------------- r23 §2 tutorial hand
