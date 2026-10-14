@@ -2229,9 +2229,9 @@ body.is-hint-chooser #topbar, body.is-hint-chooser #rule-strip { pointer-events:
 .hint-ad-confirm[hidden] { display: none !important; }
 .hint-ad-confirm { display: flex; flex-direction: column; gap: 8px; }
 .hint-ad-q { margin: 0; font-weight: 800; font-size: 1rem; color: var(--tl-ink, #1E1633); text-align: center; padding: 2px 0; }
-.hint-ad-row { display: flex; gap: 8px; }
-.hint-ad-row > .btn { flex: 1 1 0; min-height: 48px; }
-.hint-chooser.is-tight .hint-ad-row > .btn { min-height: 44px; }
+.hint-ad-confirm > .btn { width: 100%; min-height: 48px; }
+/* NB-L: Yes takes the "Use a hint" row (never the ad button's / picker's spot); No takes the ad button's row; the question below */
+.hint-ad-q { font-size: .9rem; padding: 0; }
 </style>
   
   
@@ -2357,8 +2357,9 @@ body.is-hint-chooser #topbar, body.is-hint-chooser #rule-strip { pointer-events:
       <button class="btn hint-choice" id="hint-use-star" type="button">Use a hint <span class="hint-choice-sub">· costs 1 star</span></button>
       <p class="hint-chooser-msg" id="hint-chooser-msg" role="status" hidden></p>
       <div class="hint-ad-confirm" id="hint-ad-confirm" role="group" aria-labelledby="hint-ad-q" hidden>
+        <button class="btn hint-choice" id="hint-ad-yes" type="button" aria-describedby="hint-ad-q">Yes, watch the ad</button>
+        <button class="btn hint-choice" id="hint-ad-no" type="button">No</button>
         <p class="hint-ad-q" id="hint-ad-q">Watch a short ad for a free hint?</p>
-        <div class="hint-ad-row"><button class="btn hint-choice" id="hint-ad-yes" type="button">Yes</button><button class="btn hint-choice" id="hint-ad-no" type="button">No</button></div>
       </div>
       <button class="hint-chooser-close" id="hint-chooser-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></button>
     </div>
@@ -2506,7 +2507,7 @@ const GAME_NAME_PENDING = false;
 const BUILD_NUMBER = 22;
 // Build version stamped on every playtest event. scripts/bundle.js replaces 'dev' with
 // "<YYYY-MM-DD>.game1-r<BUILD_NUMBER>+<content hash>" in the built file.
-const BUILD_VERSION = "2026-10-14.game1-r22+04b0eeb";
+const BUILD_VERSION = "2026-10-14.game1-r22+118d557";
 // Store builds set RELEASE=true to ignore every dev URL hook (?dev/?today/?level/?mode/?debug).
 // Keep false for QA builds that still need the exact-dev sandbox.
 const RELEASE = false;
@@ -7482,6 +7483,7 @@ const AD_LOAD_FAILS = new Set(['failed_to_load', 'load_timeout', 'load_rejected'
 const AD_NO_FILL_MSG = 'No ad available right now. Try again later.';
 // 1.0.2 QA NB-E (Families): a tap on the ad button within this long of the chooser opening is ignored (needs a deliberate tap)
 const AD_TAP_GUARD_MS = 400;
+const AD_YES_GUARD_MS = 1000; // 1.0.2 QA r3 NB-L
 function rewardedHint({ fromChooser = false } = {}) {
   if (st.adBusy || st.mode === 'daily' || !rewardedHintAllowed(adCtx())) return; // rc3: never in Daily
   st.adBusy = true; syncAdHint();
@@ -7828,7 +7830,8 @@ function pulseBarForHint(h) {
 // rewarded-ad flow, gating and timeouts as the old Ad hint chip; never in Daily, Tips, L1-L7 or the web build).
 // One option -> it runs straight away, no chooser. While a hint's first step is on screen, Hint continues it.
 function hintOptions() {
-  const star = hintUnlocked() && !st.won && !st.readOnly;
+  let star = hintUnlocked() && !st.won && !st.readOnly;
+  if (window.__forceAdOnly) star = false; // @test-hook
   const b = $('btn-ad-hint');
   const ad = !!b && !st.won && !st.readOnly && st.mode !== 'daily' && rewardedHintAllowed(adCtx()) && adsState().ready && !st.adBusy;
   return { star, ad };
@@ -7861,7 +7864,8 @@ function placeHintChooser() {
 function askAdConfirm() {
   const c = $('hint-chooser'), q = $('hint-ad-confirm'); if (!c || !q) return rewardedHint({ fromChooser: !!st.hintChooserOpen });
   c.classList.add('is-confirm'); q.hidden = false;
-  st.hintChooserOpenedAt = performance.now(); // Yes / No need a deliberate tap too
+  st.hintChooserOpenedAt = st.adConfirmAt = performance.now(); // Yes / No need a deliberate tap too (Yes: see AD_YES_GUARD_MS)
+  st.adYesDownAt = 0;
   placeHintChooser(); $('hint-ad-no')?.focus?.({ preventScroll: true });
 }
 function hideAdConfirm() { $('hint-chooser')?.classList.remove('is-confirm'); const q = $('hint-ad-confirm'); if (q) q.hidden = true; }
@@ -8051,11 +8055,18 @@ function initLevelsPage() {
     if (goMode('random')) showView('play', 'random');
   });
   window.tlBack = tlBack;
-  $('hint-ad-yes')?.addEventListener('click', () => { hideAdConfirm(); placeHintChooser(); ($('hint-use-star') || $('hint-chooser-close'))?.focus?.({ preventScroll: true }); rewardedHint({ fromChooser: true }); });
+  // 1.0.2 QA r3 NB-L: Yes accepts only a click whose pointerdown started after the question appeared, and only
+  // AD_YES_GUARD_MS after it appeared (a repeated tap on the ad button / old picker spot can never reach it).
+  $('hint-ad-yes')?.addEventListener('pointerdown', () => { st.adYesDownAt = performance.now(); });
+  $('hint-ad-yes')?.addEventListener('click', (e) => {
+    const now = performance.now(), at = st.adConfirmAt || 0;
+    const keyboard = e.detail === 0;
+    if (now - at < AD_YES_GUARD_MS || (!keyboard && !(st.adYesDownAt > at))) { st.adYesDownAt = 0; e.preventDefault(); e.stopImmediatePropagation(); return; } // a refused tap's pointerdown is used up
+    st.adYesDownAt = 0; hideAdConfirm(); placeHintChooser(); ($('hint-use-star') || $('hint-chooser-close'))?.focus?.({ preventScroll: true }); rewardedHint({ fromChooser: true }); });
   $('hint-ad-no')?.addEventListener('click', () => { hideAdConfirm(); if (!hintOptions().star) closeHintChooser(); else { placeHintChooser(); $('btn-ad-hint')?.focus?.({ preventScroll: true }); } });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && st.hintChooserOpen) { e.preventDefault(); closeHintChooser(); } });
   // 1.0.2 Chief NB-F: every chooser button needs a deliberate tap (none act within AD_TAP_GUARD_MS of opening)
-  $('hint-chooser')?.addEventListener('click', (e) => { if (st.hintChooserOpen && e.target.closest('button') && !e.target.closest('#hint-chooser-close') && performance.now() - (st.hintChooserOpenedAt || 0) < AD_TAP_GUARD_MS) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+  $('hint-chooser')?.addEventListener('click', (e) => { if (st.hintChooserOpen && e.target.closest('button') && !e.target.closest('#hint-chooser-close') && performance.now() - (st.hintChooserOpenedAt || 0) < AD_TAP_GUARD_MS) { st.adYesDownAt = 0; e.preventDefault(); e.stopImmediatePropagation(); } }, true);
 }
 
 // ---------------------------------------------------------------- r23 §2 tutorial hand
