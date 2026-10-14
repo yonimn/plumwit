@@ -2221,6 +2221,17 @@ body[data-view="play"] .win-banner .win-card .win-row > #win-next:has(+ #win-hom
 /* 1.0.2 QA NB-E: tight chooser for short screens (it sits above the board, over the top bar) */
 .hint-chooser.is-tight { gap: 6px; padding: 6px 58px 6px 6px !important; border-width: 2px; }
 .hint-chooser.is-tight .hint-choice, .hint-chooser.is-tight #btn-ad-hint { min-height: 44px !important; }
+/* 1.0.2 Chief (QA r2 NB-I): while the Hint chooser is open the picker is hidden and the top bar dimmed + inert
+   (pointer-events none, not focusable); the chooser is a bottom sheet in the picker's space. */
+body.is-hint-chooser #picker { visibility: hidden; }
+body.is-hint-chooser #topbar, body.is-hint-chooser #rule-strip { pointer-events: none; opacity: .45; }
+.hint-chooser.is-confirm > .hint-choice, .hint-chooser.is-confirm > #btn-ad-hint { display: none !important; }
+.hint-ad-confirm[hidden] { display: none !important; }
+.hint-ad-confirm { display: flex; flex-direction: column; gap: 8px; }
+.hint-ad-q { margin: 0; font-weight: 800; font-size: 1rem; color: var(--tl-ink, #1E1633); text-align: center; padding: 2px 0; }
+.hint-ad-row { display: flex; gap: 8px; }
+.hint-ad-row > .btn { flex: 1 1 0; min-height: 48px; }
+.hint-chooser.is-tight .hint-ad-row > .btn { min-height: 44px; }
 </style>
   
   
@@ -2345,6 +2356,10 @@ body[data-view="play"] .win-banner .win-card .win-row > #win-next:has(+ #win-hom
     <div class="hint-chooser" id="hint-chooser" role="dialog" aria-label="Hint" hidden>
       <button class="btn hint-choice" id="hint-use-star" type="button">Use a hint <span class="hint-choice-sub">· costs 1 star</span></button>
       <p class="hint-chooser-msg" id="hint-chooser-msg" role="status" hidden></p>
+      <div class="hint-ad-confirm" id="hint-ad-confirm" role="group" aria-labelledby="hint-ad-q" hidden>
+        <p class="hint-ad-q" id="hint-ad-q">Watch a short ad for a free hint?</p>
+        <div class="hint-ad-row"><button class="btn hint-choice" id="hint-ad-yes" type="button">Yes</button><button class="btn hint-choice" id="hint-ad-no" type="button">No</button></div>
+      </div>
       <button class="hint-chooser-close" id="hint-chooser-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></button>
     </div>
 
@@ -2491,7 +2506,7 @@ const GAME_NAME_PENDING = false;
 const BUILD_NUMBER = 22;
 // Build version stamped on every playtest event. scripts/bundle.js replaces 'dev' with
 // "<YYYY-MM-DD>.game1-r<BUILD_NUMBER>+<content hash>" in the built file.
-const BUILD_VERSION = "2026-10-14.game1-r22+f782748";
+const BUILD_VERSION = "2026-10-14.game1-r22+04b0eeb";
 // Store builds set RELEASE=true to ignore every dev URL hook (?dev/?today/?level/?mode/?debug).
 // Keep false for QA builds that still need the exact-dev sandbox.
 const RELEASE = false;
@@ -7510,7 +7525,7 @@ async function initNative() {
     const cancel = () => clearTimeout(lp);
     b.addEventListener('pointerup', cancel); b.addEventListener('pointerleave', cancel); b.addEventListener('pointercancel', cancel);
     b.addEventListener('contextmenu', (e) => { e.preventDefault(); showAdTip(); });
-    b.addEventListener('click', (e) => { if (longPressed) { longPressed = false; e.preventDefault(); return; } hideAdTip(); const inChooser = !!st.hintChooserOpen; if (inChooser && performance.now() - (st.hintChooserOpenedAt || 0) < AD_TAP_GUARD_MS) { e.preventDefault(); return; } const m = $('hint-chooser-msg'); if (m) m.hidden = true; rewardedHint({ fromChooser: inChooser }); });
+    b.addEventListener('click', (e) => { if (longPressed) { longPressed = false; e.preventDefault(); return; } hideAdTip(); const inChooser = !!st.hintChooserOpen; if (inChooser && performance.now() - (st.hintChooserOpenedAt || 0) < AD_TAP_GUARD_MS) { e.preventDefault(); return; } const m = $('hint-chooser-msg'); if (m) m.hidden = true; askAdConfirm(); });
   }
   addPrivacySection();
   addFooterPolicyLink();
@@ -7825,23 +7840,34 @@ function onHintButton() {
   const o = hintOptions();
   if (st.hintChooserOpen) return closeHintChooser(); // 1.0.2 (4): Hint toggles the chooser closed
   if (o.star && o.ad) return openHintChooser();
-  if (o.ad) return rewardedHint();
+  if (o.ad) { openHintChooser(); return askAdConfirm(); } // 1.0.2 Chief: no ad without an explicit Yes
   return showHint();
 }
-// 1.0.2 Chief NB-F/NB-G: the chooser sits in the band between the top bar (‹, ?, rule-strip links) and the shape
-// picker, >= CHOOSER_CLEAR px from every target of both, centred in it (over the board, which the scrim blocks; every
-// chooser button also ignores taps for AD_TAP_GUARD_MS after opening). Re-placed when its message grows it (no-fill).
-const CHOOSER_CLEAR = 44;
+// 1.0.2 Chief (QA r2 NB-I): the chooser is a bottom sheet in the picker's space, below the board: no chooser button
+// is ever over a board cell, the picker is hidden and the top bar inert while it is open (body.is-hint-chooser),
+// scrim taps only close. Re-placed when its message / confirm changes its height; on very short screens the tight form.
 function placeHintChooser() {
   const c = $('hint-chooser'); if (!c || c.hidden) return;
   c.classList.remove('is-tight');
-  const tops = [...document.querySelectorAll('#topbar button, #topbar a, #rule-strip a, #rule-strip button')].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
-  const picks = [...document.querySelectorAll('#picker .pick, #picker button')].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
-  const bandTop = (tops.length ? Math.max(...tops.map((r) => r.bottom)) : 0) + CHOOSER_CLEAR;
-  const bandBot = (picks.length ? Math.min(...picks.map((r) => r.top)) : window.innerHeight) - CHOOSER_CLEAR;
+  const bd = $('board')?.getBoundingClientRect();
+  const cells = [...document.querySelectorAll('#board .cell')].map((e) => e.getBoundingClientRect());
+  const floor = cells.length ? Math.max(...cells.map((r) => r.bottom)) : (bd ? bd.bottom : 0);
+  const top0 = Math.round((bd ? Math.max(bd.bottom, floor) : floor) + 6);
   let h = c.getBoundingClientRect().height;
-  if (h > bandBot - bandTop) { c.classList.add('is-tight'); h = c.getBoundingClientRect().height; }
-  c.style.top = `${Math.round(Math.max(bandTop, bandTop + (bandBot - bandTop - h) / 2))}px`;
+  if (top0 + h > window.innerHeight - 2) { c.classList.add('is-tight'); h = c.getBoundingClientRect().height; }
+  c.style.top = `${Math.max(top0, Math.min(top0, Math.round(window.innerHeight - 2 - h)))}px`;
+}
+// 1.0.2 Chief: the ad button only asks; the ad starts on an explicit Yes ("Watch a short ad for a free hint?").
+function askAdConfirm() {
+  const c = $('hint-chooser'), q = $('hint-ad-confirm'); if (!c || !q) return rewardedHint({ fromChooser: !!st.hintChooserOpen });
+  c.classList.add('is-confirm'); q.hidden = false;
+  st.hintChooserOpenedAt = performance.now(); // Yes / No need a deliberate tap too
+  placeHintChooser(); $('hint-ad-no')?.focus?.({ preventScroll: true });
+}
+function hideAdConfirm() { $('hint-chooser')?.classList.remove('is-confirm'); const q = $('hint-ad-confirm'); if (q) q.hidden = true; }
+function setChooserChrome(open) {
+  document.body.classList.toggle('is-hint-chooser', open);
+  for (const id of ['topbar', 'rule-strip', 'picker']) { const e = $(id); if (!e) continue; if (open) e.setAttribute('inert', ''); else e.removeAttribute('inert'); }
 }
 function openHintChooser() {
   const c = $('hint-chooser'); if (!c) return;
@@ -7858,13 +7884,18 @@ function openHintChooser() {
   // 1.0.2 (4): a scrim under the chooser takes every tap outside it and closes it (before, the chooser covered the
   // board's bottom rows + picker at 320 and a tap there hit "Use a hint"; a tap on Hint re-opened it).
   const sc = $('hint-chooser-scrim'); if (sc) sc.hidden = false;
+  setChooserChrome(true); hideAdConfirm(); placeHintChooser();
+  if (!c.contains(document.activeElement)) $('hint-use-star')?.focus?.({ preventScroll: true });
   bumpNav('hint_chooser');
 }
 function closeHintChooser() {
   const c = $('hint-chooser'); if (c) c.hidden = true;
   const sc = $('hint-chooser-scrim'); if (sc) sc.hidden = true;
   const m = $('hint-chooser-msg'); if (m) { m.hidden = true; m.textContent = ''; } // r23.2 N4
+  const wasOpen = st.hintChooserOpen;
   st.hintChooserOpen = false;
+  hideAdConfirm(); setChooserChrome(false);
+  if (wasOpen && $('hint-chooser')?.contains(document.activeElement)) $('hint')?.focus?.({ preventScroll: true });
 }
 // 1.0.2 (4): scrim tap closes; its click is swallowed so it never lands on the board, picker or a tool.
 function onChooserScrim(e) { e.preventDefault(); e.stopPropagation(); closeHintChooser(); }
@@ -8020,8 +8051,11 @@ function initLevelsPage() {
     if (goMode('random')) showView('play', 'random');
   });
   window.tlBack = tlBack;
+  $('hint-ad-yes')?.addEventListener('click', () => { hideAdConfirm(); placeHintChooser(); ($('hint-use-star') || $('hint-chooser-close'))?.focus?.({ preventScroll: true }); rewardedHint({ fromChooser: true }); });
+  $('hint-ad-no')?.addEventListener('click', () => { hideAdConfirm(); if (!hintOptions().star) closeHintChooser(); else { placeHintChooser(); $('btn-ad-hint')?.focus?.({ preventScroll: true }); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && st.hintChooserOpen) { e.preventDefault(); closeHintChooser(); } });
   // 1.0.2 Chief NB-F: every chooser button needs a deliberate tap (none act within AD_TAP_GUARD_MS of opening)
-  $('hint-chooser')?.addEventListener('click', (e) => { if (st.hintChooserOpen && e.target.closest('button') && performance.now() - (st.hintChooserOpenedAt || 0) < AD_TAP_GUARD_MS) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+  $('hint-chooser')?.addEventListener('click', (e) => { if (st.hintChooserOpen && e.target.closest('button') && !e.target.closest('#hint-chooser-close') && performance.now() - (st.hintChooserOpenedAt || 0) < AD_TAP_GUARD_MS) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
 }
 
 // ---------------------------------------------------------------- r23 §2 tutorial hand
