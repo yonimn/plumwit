@@ -404,8 +404,6 @@ h1 { font-size: 1.5rem; margin: 0; font-weight: 800; }
 /* Menu row under the level line: playtest export, send, About (credits + font license) */
 .menu-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 0 4px; }
 .menu-row .linkbtn { margin: 2px 0 10px; padding: 0 8px; }
-.about-panel .credit { font-size: .85rem; }
-.about-panel .license { white-space: pre-wrap; font-size: .7rem; max-height: 40vh; overflow: auto; font-family: ui-monospace, monospace; }
 
 /* Short phone screens (e.g. 360x740): tighter chrome so the picker + controls stay on screen with 8x8. */
 @media (max-width: 400px) and (max-height: 780px) {
@@ -680,8 +678,6 @@ header .badge[hidden] { display: none; }
 #win-daily,
 #win-stars,
 #win-seal,
-#about-build,
-.about-panel .credit,
 #daily-card-date,
 #daily-card-meta,
 #daily-card-label,
@@ -1934,15 +1930,13 @@ header h1 { -webkit-text-stroke: 0; text-shadow: none; }
 /* rc2: equal visual weight (no pre-selected answer) */
 #consent .consent-btn, #age-gate .consent-btn { background: #fff; color: var(--tl-ink, #1E1633); border: 2px solid var(--tl-ink, #1E1633); font-weight: 700; }
 #consent .consent-links { margin: 12px 0 0; font-size: .9rem; }
-#consent a, .about-privacy a { color: inherit; text-decoration: underline; }
+#consent a { color: inherit; text-decoration: underline; }
 /* rc4: neutral age screen (native only): one question, a year list with no default, a neutral Continue. */
 #age-gate .age-card { width: 100%; }
 #age-gate .age-q { display: block; margin: 0 0 10px; font-weight: 600; }
 #age-gate .age-select { width: 100%; min-height: 48px; font: inherit; font-size: 1.05rem; color: var(--tl-ink, #1E1633); background: #fff;
   border: 2px solid var(--tl-ink, #1E1633); border-radius: 12px; padding: 0 12px; }
 #age-gate .consent-btn:disabled { opacity: .45; }
-.about-privacy h3 { margin: 12px 0 4px; font-size: 1.05rem; }
-.about-privacy p { margin: 4px 0; }
 
 
 /* rc3: Ad hint = compact kit-sized icon button in the tool row (#btn-ad-hint / .tool-btn--ad). Styling hook for
@@ -2063,8 +2057,6 @@ body[data-view="play"] .topbar .badge, body[data-view="play"] .topbar .dev-date-
 /* rule strip: the beats chain, and (app builds) the Privacy link at its right edge */
 body[data-view="play"] .rule-strip { display: flex; align-items: center; gap: 4px; min-height: 44px; }
 body[data-view="play"] .rule-strip > .legend { flex: 1 1 auto; min-width: 0; margin: 0; min-height: 44px; box-sizing: border-box; }
-body[data-view="play"] .rule-strip > .strip-privacy { flex: none; min-width: 44px; min-height: 44px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center;
-  font-size: .78rem; font-weight: 700; color: #fff; text-decoration: underline; text-underline-offset: 2px; }
 
 /* the board slot takes the leftover height; the tray is the column wide, cells centred in it */
 body[data-view="play"] #app > .board-wrap { flex: 1 1 0; min-height: 0; width: var(--col); max-width: var(--col); display: grid; align-items: center; justify-items: center; overflow: visible; }
@@ -2140,11 +2132,9 @@ body[data-view="play"] .board-wrap > .win-banner { max-height: 100%; overflow-y:
 .play-title .diff-badge { font-size: .62em; }
 .dev-date-marker.is-bad { background: #b3261e; color: #fff; }
 .hint-chooser .tool-btn--ad .ad-tip { top: auto; bottom: calc(100% + 6px); right: auto; left: 50%; transform: translateX(-50%); max-width: calc(var(--col, 300px) - 16px); }
-body[data-view="play"] .rule-strip > .strip-privacy { margin: 0; padding: 0 4px; } /* r23: same strip height as the web build (old link margins leaked in) */
 .play-title.has-badge { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
 .play-title.has-badge > .pt-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .play-title.has-badge > .diff-badge { flex: none; }
-body[data-view="play"] .rule-strip:has(.strip-privacy) .legend > *, body[data-view="play"] .rule-strip:has(.strip-privacy) .legend .leg-seg > * { flex-shrink: 0; } /* the strip scales (fitStrip), never squashes the cycle */
 /* r23.1 B3 (QA): the win / pack-complete card may use the message bar + picker rows below the board (both idle on a
    win), so the L20 card fits at 320x568; its content is safe-centred (never pushed above the card) and the board
    slot underneath keeps its size. */
@@ -2268,7 +2258,144 @@ body[data-view="play"] .controls > #hint-plus:disabled { opacity: .5; }
 .hint-chooser.is-noband .hint-actions { display: none !important; }
 body.is-hint-chooser #hint-text, body.is-hint-chooser #hint-text *, body.is-hint-chooser .msg-bar, body.is-hint-chooser .msg-bar * { visibility: hidden !important; }
 .hint-chooser { min-height: 54px !important; justify-content: center; }
+/* 1.0.5 r3 (QA NB-r2-1, Chief): the solved board stays visible behind the win card. The card sits at the BOTTOM of the
+   win layer (board + idle message bar + picker), so its buttons land below the board and the board's top shows; at
+   small heights the card is compact. Every win-card button keeps a 44px target. */
+body[data-view="play"] .board-wrap > .win-banner:not([hidden]),
+body[data-view="play"] .board-wrap > .win-banner.rating:not([hidden]),
+body[data-view="play"] .board-wrap > .win-banner.rating-after:not([hidden]) { justify-content: flex-end; padding-bottom: 4px !important; }
+body[data-view="play"] .win-banner .win-card .btn, body[data-view="play"] .win-banner .win-card .linkbtn,
+body[data-view="play"] .win-banner.pack-done #win-next.btn.primary { min-height: 44px; }
+@media (max-height: 700px) {
+  body[data-view="play"] .win-banner:not(.pack-done) .win-card { gap: 4px; padding: 8px 10px 8px; }
+  body[data-view="play"] .win-banner:not(.pack-done) .win-card .win-title { width: min(50%, 150px); margin: 0; }
+  body[data-view="play"] .win-banner:not(.pack-done) .win-card .win-sub { gap: 4px; margin: 0; }
+  body[data-view="play"] .win-banner:not(.pack-done) .win-card .win-sub .stat { padding: 2px 7px; font-size: .75rem; }
+  body[data-view="play"] .win-banner:not(.pack-done) .win-card .win-stars { font-size: 1.1rem !important; margin: 0; }
+  body[data-view="play"] .win-banner:not(.pack-done) .win-card .btn { min-height: 44px; }
+}
+/* 1.0.5 r4 (QA B-1, Chief): Next / Share stay OUT of the picker band. The card ends at the top of the (idle) picker row,
+   and its buttons share ONE row that sits in the message-bar band between the board and the picker (clear of cells too). */
+body[data-view="play"] .board-wrap > .win-banner:not(.pack-done):not([hidden]) { padding-bottom: calc(48px + var(--row-gap, 8px)) !important; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-card { padding-bottom: 4px; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row { max-width: 100%; gap: 6px; flex-wrap: nowrap; margin: 0; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row > .btn { width: auto; max-width: none; flex: 1 1 0; min-width: 0; min-height: 44px; height: 44px; padding: 0 8px; margin: 0;
+  font-size: .875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row > .btn { padding: 0 6px; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-next { flex-grow: 1.6; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-next.btn.primary { min-height: 44px; height: 44px; padding: 0 6px; font-size: .95rem; border-radius: 14px; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-share.btn, body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-home.btn {
+  min-height: 44px; height: 44px; padding: 0 8px; font-size: .875rem; margin: 0; flex: 0 1 auto; width: auto; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-next.btn.primary { flex: 1 1 auto; }
+@media (max-width: 359px) { /* 320: three buttons in one row (Back to daily | Home | Share) */
+  body[data-view="play"] .win-banner:not(.pack-done) .win-row { gap: 4px; }
+  body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-next.btn.primary,
+  body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-share.btn,
+  body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-home.btn { padding: 0 5px; font-size: .8rem; }
+  /* r6 NB-r5-2: Home / Share labels at least 14px at 320 */
+  body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-next.btn.primary,
+  body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-share.btn,
+  body[data-view="play"] .win-banner:not(.pack-done) .win-row > #win-home.btn { font-size: .875rem; }
+  body[data-view="play"] .board-wrap > .win-banner:not(.pack-done):not([hidden]) { padding-left: 6px !important; padding-right: 6px !important; }
+}
+/* 1.0.5 r5 NB-r4-1: never truncate the win row (fitWinRow in ui.js adds these only when a label would overflow) */
+body[data-view="play"] .win-banner:not(.pack-done) .win-row.wr-short #win-next .wr-x { display: none; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row.wr-tiny > .btn,
+body[data-view="play"] .win-banner:not(.pack-done) .win-row.wr-tiny > #win-next.btn.primary { font-size: .72rem; padding: 0 4px; }
+body[data-view="play"] .win-banner:not(.pack-done) .win-row.wr-short #win-next .wr-rest { text-transform: capitalize; } /* "Daily" */
+/* 1.0.6 (ads hotfix): "Loading ad..." wait state of the ad sheet: spinner + message, one 44px+ Cancel in place of Yes / No */
+.hint-chooser .hint-choice[hidden] { display: none !important; }
+.hint-chooser.is-ad-waiting .hint-dontask { display: none !important; }
+.hint-chooser.is-ad-waiting .hint-chooser-msg { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; }
+.hint-chooser.is-ad-waiting .hint-chooser-msg[hidden] { display: none; }
+.hint-chooser #hint-ad-cancel { min-height: 44px; }
+/* 1.0.6 r2 (QA B-106-1): while waiting, the Yes/No band stays where it is but empty and inert (a doubled Yes lands on
+   nothing); Cancel sits in the card, under the message. */
+.hint-chooser.is-ad-waiting #hint-ad-cancel { width: 100%; flex: none; }
+.hint-chooser.is-ad-waiting .hint-actions > .hint-choice { display: none !important; }
+.ad-wait-spin { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 3px solid rgba(30, 22, 51, .22); border-top-color: var(--tl-ink, #1E1633); animation: tl-ad-spin .8s linear infinite; }
+@keyframes tl-ad-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ad-wait-spin { animation: none; border-top-color: rgba(30, 22, 51, .22); border-right-color: var(--tl-ink, #1E1633); } }
+
+/* Version line: 1rem, as the approved mockups RENDER it (common.css .ver says .8125rem but `.card p` overrides it there).
+   1.0.5 About v2 (design/about-page-v2.md §2, mockups design/about-v2/after*.png; values from design/about-v2/common.css).
+   Full-screen page on the plum stage, white Soften C cards, one centered column (max 480px), rem so it scales. */
+dialog.about-page {
+  position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
+  background: #3E2069; color: #1E1633; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  font-family: "Tiles Legible UI", system-ui, sans-serif; -webkit-text-size-adjust: 100%;
+}
+dialog.about-page::backdrop { background: #3E2069; }
+.about-page .ab-page { min-height: 100%; background: radial-gradient(120% 70% at 50% 0%, #8A55C2 0%, #5E3594 45%, #3E2069 100%); display: flex; flex-direction: column; }
+.about-page .ab-bar { height: 56px; box-sizing: content-box; padding: env(safe-area-inset-top) 12px 0; display: flex; align-items: center; gap: 4px; flex: none; }
+.about-page .ab-back { width: 48px; height: 48px; display: grid; place-items: center; padding: 0; margin: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
+.about-page .ab-back > span { width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, .16); display: grid; place-items: center; }
+.about-page .ab-back:focus-visible > span { outline: 3px solid #fff; outline-offset: 2px; }
+.about-page .ab-bar h2 { font-weight: 700; font-size: 1.3rem; color: #fff; margin: 0; }
+.about-page .ab-wrap { box-sizing: border-box; width: 100%; max-width: 480px; margin: 0 auto; padding: 0 20px; flex: 1 0 auto; display: flex; flex-direction: column; }
+.about-page .ab-hero { margin: 32px 0 24px; text-align: center; }
+.about-page .ab-icon { width: 84px; height: 84px; border-radius: 22%; display: block; margin: 0 auto 20px; }
+.about-page .ab-word { display: block; height: 35px; }
+.about-page .ab-word svg { height: 35px; width: auto; display: block; margin: 0 auto; }
+.about-page .ab-tagline { color: rgba(255, 255, 255, .8); margin: 6px 0 0; font-size: 1rem; }
+.about-page .ab-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(30, 22, 51, .18); outline: 1.25px solid rgba(30, 22, 51, .12); padding: 18px; margin: 0 0 16px; text-align: left; }
+.about-page .ab-card h3 { font-weight: 700; font-size: 1.125rem; margin: 0 0 12px; }
+.about-page .ab-card p { font-size: 1rem; line-height: 1.45; margin: 0 0 12px; }
+.about-page .ab-legend { display: flex; align-items: center; gap: 6px; row-gap: 6px; flex-wrap: wrap; /* 1.0.5 r2 NB-1: wraps to a 2nd line only when it can't fit (320px at 130% text), between the two halves */ white-space: nowrap; font-weight: 700; font-size: .875rem; line-height: 1.2; }
+.about-page .ab-leg-seg { display: inline-flex; align-items: center; gap: inherit; flex: none; white-space: nowrap; }
+.about-page .ab-chip { flex: none; width: 24px; height: 24px; box-sizing: border-box; border-radius: 6px; border: 1.25px solid #1E1633; display: grid; place-items: center; }
+.about-page .ab-chip-t { background: #FF8A00; } .about-page .ab-chip-c { background: #0F6BFF; } .about-page .ab-chip-s { background: #2A2540; }
+.about-page .ab-chip i { display: block; background: #fff; }
+.about-page .ab-chip-c i { width: 11px; height: 11px; border-radius: 50%; }
+.about-page .ab-chip-s i { width: 10px; height: 10px; }
+.about-page .ab-chip-t i { width: 0; height: 0; background: none; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid #fff; }
+.about-page .ab-rules { margin: 0; padding-left: 20px; font-size: 1rem; line-height: 1.45; }
+.about-page .ab-card p.ab-ver { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 1rem; color: #6B6478; margin: 0; }
+.about-page .ab-license-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; font: inherit; color: #6B6478; cursor: pointer; }
+.about-page .ab-links { padding: 4px 18px; }
+.about-page .ab-row { box-sizing: border-box; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 6px 0; margin: 0;
+  border: 0; background: none; color: #1E1633; font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.about-page .ab-row[hidden] { display: none; }
+.about-page .ab-row:not([hidden]) ~ .ab-row { border-top: 1px solid rgba(30, 22, 51, .12); }
+.about-page .ab-row-text { min-width: 0; }
+.about-page .ab-row b { display: block; font-size: 1rem; font-weight: 700; }
+.about-page .ab-row small { display: block; color: #6B6478; font-size: .875rem; overflow-wrap: anywhere; }
+.about-page .ab-row:focus-visible, .about-page .ab-license-link:focus-visible { outline: 3px solid rgba(94, 53, 148, .6); outline-offset: 2px; border-radius: 8px; }
+.about-page .ab-chev { flex: none; color: rgba(30, 22, 51, .45); }
+.about-page .ab-foot { display: flex; justify-content: center; align-items: center; gap: 8px; color: rgba(255, 255, 255, .7); font-size: .875rem; margin-top: auto; padding: 24px 0 calc(16px + env(safe-area-inset-bottom)); }
+.about-page .ab-mark svg { height: 28px; width: 28px; display: block; }
+/* Font license sub-sheet (the OFL text, unchanged) */
+dialog.ab-sheet { box-sizing: border-box; width: min(92vw, 440px); max-height: 86vh; border: 0; border-radius: 16px; padding: 0; background: #fff; color: #1E1633;
+  box-shadow: 0 6px 18px rgba(30, 22, 51, .18); font-family: "Tiles Legible UI", system-ui, sans-serif; }
+dialog.ab-sheet::backdrop { background: rgba(30, 22, 51, .6); }
+.ab-sheet .ab-sheet-card { display: flex; flex-direction: column; max-height: 86vh; padding: 20px; box-sizing: border-box; }
+.ab-sheet h2 { font-weight: 700; font-size: 1.3rem; margin: 0 0 8px; }
+.ab-sheet .ab-credit { font-size: .875rem; line-height: 1.4; margin: 0 0 10px; color: #1E1633; }
+.ab-sheet .license { white-space: pre-wrap; font-size: .7rem; line-height: 1.35; overflow: auto; min-height: 0; flex: 1 1 auto; margin: 0 0 12px; font-family: ui-monospace, monospace; }
+.ab-sheet .ab-sheet-close { min-height: 48px; border-radius: 14px; border: 1.25px solid #1E1633; background: #fff; color: #1E1633; font: inherit; font-weight: 700; font-size: 1rem; cursor: pointer; flex: none; }
+/* Parent gate (§4; mockups after-gate*.png). Question + error at 1rem, as the mockups render them (`.gate p` wins there). */
+dialog.parent-gate { box-sizing: border-box; width: calc(100% - 40px); max-width: 340px; max-height: calc(100% - 24px); overflow-y: auto; border: 0; padding: 0; background: transparent; color: #1E1633;
+  font-family: "Tiles Legible UI", system-ui, sans-serif; }
+dialog.parent-gate::backdrop { background: rgba(30, 22, 51, .6); }
+.parent-gate .pg-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(30, 22, 51, .18); outline: 1.25px solid rgba(30, 22, 51, .12); padding: 20px; }
+.parent-gate h2 { font-weight: 700; font-size: 1.3rem; margin: 0 0 8px; }
+.parent-gate p { font-size: 1rem; line-height: 1.45; margin: 0 0 12px; }
+.parent-gate .pg-q { font-weight: 700; font-size: 1rem; line-height: 1.45; text-align: center; margin: 4px 0 2px; }
+.parent-gate .pg-nw { white-space: nowrap; } /* NB-2: number words never break at the hyphen */
+.parent-gate .pg-qd { font-size: 1rem; text-align: center; color: #6B6478; margin: 0 0 14px; }
+.parent-gate label { display: block; font-weight: 700; font-size: .875rem; margin-bottom: 6px; }
+.parent-gate input { box-sizing: border-box; width: 100%; min-height: 52px; border: 1.25px solid #1E1633; border-radius: 14px; font: inherit; font-size: 1.25rem; padding: 0 14px; color: #1E1633; background: #fff; margin: 0 0 6px; }
+.parent-gate input:focus { outline: 3px solid rgba(94, 53, 148, .45); outline-offset: 1px; }
+.parent-gate .pg-err { min-height: 1.4em; color: #C9472F; font-weight: 700; font-size: 1rem; margin: 0 0 12px; }
+.parent-gate .pg-btns { display: flex; flex-direction: column; gap: 8px; }
+.parent-gate button { min-height: 48px; border-radius: 14px; font: inherit; font-weight: 700; font-size: 1rem; border: 0; cursor: pointer; color: #1E1633; }
+.parent-gate .pg-go { background: #FFC21F; border: 1.25px solid #1E1633; }
+.parent-gate .pg-go:disabled { opacity: .45; cursor: default; }
+.parent-gate .pg-cancel { background: none; }
+.about-page .ab-legend { margin: 0 0 12px; }
+@media (max-width: 339px) { .about-page .ab-legend { gap: 4px; } } /* 320px: the 4 chips + 3 "beats" still fit on one line */
 </style>
+  
   
   
   
@@ -2352,7 +2479,7 @@ body.is-hint-chooser #hint-text, body.is-hint-chooser #hint-text *, body.is-hint
       <div class="board" id="board" aria-label="Puzzle grid"></div>
       <div class="win-wash" id="win-wash" aria-hidden="true"></div>
       <div class="win-banner" id="win" hidden>
-        <div class="win-card" id="win-card" role="group" aria-labelledby="win-title">
+        <div class="win-card" id="win-card" role="group" aria-labelledby="win-title" tabindex="-1">
           <!-- Fun rating: its own small step before the win card (playtest spec §2.3 levels only) -->
           <div class="rate-step" id="rate-step">
             <div class="win-title rate-title">Solved!</div>
@@ -2367,10 +2494,10 @@ body.is-hint-chooser #hint-text, body.is-hint-chooser #hint-text *, body.is-hint
           <div class="win-row" id="win-row">
             <button class="btn primary" id="win-next">Next puzzle</button>
             <button class="btn" id="win-home" type="button" hidden>Home</button>
+            <button class="btn" id="win-share" type="button" aria-label="Share result" hidden>Share</button>
           </div>
           <button class="btn" id="win-alt" hidden></button>
           <button class="linkbtn" id="win-daily" type="button" hidden>Today's daily</button>
-          <button class="btn" id="win-share" type="button" hidden>Share result</button>
         </div>
       </div>
     </div>
@@ -2399,6 +2526,8 @@ body.is-hint-chooser #hint-text, body.is-hint-chooser #hint-text *, body.is-hint
         <label class="hint-dontask" id="hint-dontask" hidden><input type="checkbox" id="hint-dontask-box"> <span>Don't ask again</span></label>
       </div>
       <p class="hint-chooser-msg" id="hint-chooser-msg" role="status" hidden></p>
+      <!-- 1.0.6 r2 (QA B-106-1): Cancel lives in the card under "Loading ad…", never in the Yes/No band (the Yes spot) -->
+      <button class="btn hint-choice" id="hint-ad-cancel" type="button" hidden>Cancel</button>
       <button class="hint-chooser-close" id="hint-chooser-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></button>
     </div>
 
@@ -2419,11 +2548,17 @@ body.is-hint-chooser #hint-text, body.is-hint-chooser #hint-text *, body.is-hint
       <label class="setting-row"><input type="checkbox" id="setting-askhint" checked> <span>Ask before another hint</span></label>
       <button class="linkbtn" id="settings-close" type="button">Close</button>
     </dialog>
-    <dialog class="pt-panel about-panel" id="about-panel" aria-labelledby="about-title">
-      <h2 id="about-title">About</h2>
-      <p id="about-build"></p>
-      <p class="credit">Font: Tiles Legible UI, a renamed subset based on Atkinson Hyperlegible by the Braille Institute of America. Copyright 2020 Braille Institute of America, Inc. Licensed under the SIL Open Font License 1.1.</p>
-      <details><summary>Font license (SIL OFL 1.1)</summary><pre class="license" id="about-license">Copyright 2020 Braille Institute of America, Inc.
+    <dialog class="about-page" id="about-panel" aria-labelledby="about-title">
+      <div class="ab-page">
+        <div class="ab-bar"><button class="ab-back" id="about-close" type="button" aria-label="Back"><span><svg aria-hidden="true" focusable="false" width="12" height="18" viewBox="0 0 12 18"><path d="M9 2L3 9l6 7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button><h2 id="about-title">About</h2></div>
+        <div class="ab-wrap" id="about-body"></div>
+      </div>
+    </dialog>
+    <dialog class="ab-sheet" id="about-license-sheet" aria-labelledby="about-license-title">
+      <div class="ab-sheet-card">
+        <h2 id="about-license-title">Font license</h2>
+        <p class="ab-credit">Font: Tiles Legible UI, a renamed subset based on Atkinson Hyperlegible by the Braille Institute of America. Copyright 2020 Braille Institute of America, Inc. Licensed under the SIL Open Font License 1.1.</p>
+        <pre class="license" id="about-license">Copyright 2020 Braille Institute of America, Inc.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
@@ -2515,8 +2650,9 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
-</pre></details>
-      <button class="linkbtn" id="about-close" type="button">Close</button>
+</pre>
+        <button class="ab-sheet-close" id="about-license-close" type="button">Close</button>
+      </div>
     </dialog>
     <!-- @dev-only-start -->
     <dialog class="pt-panel" id="pt-panel" aria-labelledby="pt-title">
@@ -2541,12 +2677,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 // ---- src/config.js ----
 // Player-facing game name: the ONE place it is set (Jonathan locked 2026-09-29).
 const GAME_NAME = "Tessellogic";
-const GAME_NAME_PENDING = false;
+// 1.0.5 About v2: the version shown on About ("Version 1.0.5"). MUST equal versionName in native/android/app/build.gradle
+// (Gradle's verifyTessellogicMode reads it from the bundle and fails on a mismatch). BUILD_VERSION stays in playtest events only.
+const APP_VERSION = '1.0.6';
 // Build number: bump for every build handed to QA / playtesters.
 const BUILD_NUMBER = 22;
 // Build version stamped on every playtest event. scripts/bundle.js replaces 'dev' with
 // "<YYYY-MM-DD>.game1-r<BUILD_NUMBER>+<content hash>" in the built file.
-const BUILD_VERSION = "2026-10-15.game1-r22+16d5ce1";
+const BUILD_VERSION = "2026-10-20.game1-r22+94783a0";
 // Store builds set RELEASE=true to ignore every dev URL hook (?dev/?today/?level/?mode/?debug).
 // Keep false for QA builds that still need the exact-dev sandbox.
 const RELEASE = false;
@@ -4923,8 +5061,14 @@ function hbSanitize(r) {
   return { v: 1, balance: hbNat(o.balance), lastGrantDate: hbIsDate(o.lastGrantDate) ? o.lastGrantDate : null,
     noFillDate: hbIsDate(o.noFillDate) ? o.noFillDate : null, noFillCount: hbNat(o.noFillCount),
     offlineDate: hbIsDate(o.offlineDate) ? o.offlineDate : null, offlineUsed: hbNat(o.offlineUsed),
-    askAgain: o.askAgain !== false };
+    askAgain: o.askAgain !== false, ...(hbNat(o.pendingAd) ? { pendingAd: Math.min(hbNat(o.pendingAd), 10) } : {}),
+    ...(hbNat(o.showFailCount) && typeof o.showFailDate === 'string' ? { showFailDate: o.showFailDate, showFailCount: Math.min(hbNat(o.showFailCount), 1000) } : {}) };
 }
+// 1.0.6 r2 (Chief): a rewarded ad's reward is first stored as pendingAd (on the reward event, nothing visible) and applied
+// (balance +n, pendingAd gone) in ONE record write when the ad is dismissed, or at the next start after a kill. One write =
+// it can never be applied twice or lost in between. The field exists only while a reward is pending.
+function hbAddPendingAd(rec) { const r = hbSanitize(rec); r.pendingAd = Math.min((r.pendingAd || 0) + 1, 10); return r; }
+function hbApplyPendingAd(rec) { const r = hbSanitize(rec); const n = r.pendingAd || 0; delete r.pendingAd; r.balance += n; return { rec: r, n }; }
 // First 1.0.3 launch (or a missing/corrupt record): balance 2, today recorded (no extra grant today), ask on.
 function hbFresh(today) { return { v: 1, balance: HB_START, lastGrantDate: today, noFillDate: today, noFillCount: 0, offlineDate: today, offlineUsed: 0, askAgain: true }; }
 function hbGrantIfNewDay(rec, today) {
@@ -4941,6 +5085,12 @@ function hbSpend(rec) { const r = hbSanitize(rec); if (r.balance < 1) return { r
 function hbEarn(rec, n = 1) { const r = hbSanitize(rec); r.balance += hbNat(n); return r; }
 function hbNoFillLeft(rec, today) { const r = hbSanitize(rec); hbDayCounter(r, today, 'noFillDate', 'noFillCount'); return Math.max(0, HB_NOFILL_PER_DAY - r.noFillCount); }
 function hbUseNoFill(rec, today) { const r = hbSanitize(rec); hbDayCounter(r, today, 'noFillDate', 'noFillCount'); if (r.noFillCount >= HB_NOFILL_PER_DAY) return { rec: r, ok: false }; r.noFillCount += 1; r.balance += 1; return { rec: r, ok: true }; }
+// 1.0.6 r2.2 (Chief): silent soft limit on 'show_fail_free' grants (a failed show always +1): HB_SHOW_FAIL_FREE_PER_DAY
+// per local day, persisted (showFailDate / showFailCount, present only once used). After it, a failed show takes the
+// normal capped no-fill path ('show_fail_capped'). These grants never use a no-fill slot.
+const HB_SHOW_FAIL_FREE_PER_DAY = 10;
+function hbShowFailLeft(rec, today) { const r = hbSanitize(rec); const n = r.showFailDate === today ? (r.showFailCount || 0) : 0; return Math.max(0, HB_SHOW_FAIL_FREE_PER_DAY - n); }
+function hbUseShowFail(rec, today) { const r = hbSanitize(rec); const n = r.showFailDate === today ? (r.showFailCount || 0) : 0; if (n >= HB_SHOW_FAIL_FREE_PER_DAY) return { rec: r, ok: false }; r.showFailDate = today; r.showFailCount = n + 1; r.balance += 1; return { rec: r, ok: true }; }
 function hbOfflineLeft(rec, today) { const r = hbSanitize(rec); hbDayCounter(r, today, 'offlineDate', 'offlineUsed'); return Math.max(0, HB_OFFLINE_PER_DAY - r.offlineUsed); }
 function hbUseOffline(rec, today) { const r = hbSanitize(rec); hbDayCounter(r, today, 'offlineDate', 'offlineUsed'); if (r.offlineUsed >= HB_OFFLINE_PER_DAY) return { rec: r, ok: false }; r.offlineUsed += 1; r.balance += 1; return { rec: r, ok: true }; }
 function hbSetAskAgain(rec, on) { const r = hbSanitize(rec); r.askAgain = !!on; return r; }
@@ -5051,6 +5201,16 @@ function applyAudience(decision, policy = audience) { return { ...decision, npa:
 let adsReady = false;
 let adsNpa = true;         // non-personalized unless UMP consent was OBTAINED
 let umpCanRequestAds = false;
+// diag/1.0.5-ads -> 1.0.6 (Chief): local-only ad-flow trace, console.info lines with a fixed trace prefix; no ids, no
+// PII, nothing sent anywhere. ON in every test-ID build (QA test AABs log it to logcat as Capacitor/Console, see
+// native/capacitor.config.js); the --prod-ads bundle strips the tagged console line and its bundle check fails if any
+// trace is left. adDiag itself stays (a no-op body in prod).
+const adT0 = { rewarded: 0, interstitial: 0 };
+function adDiag(ev, o) {
+  try { console.info('[TL-AD] ' + ev + ' ' + JSON.stringify(o || {})); } catch (e) { /* ignore */ } // @ad-diag
+}
+function adErr(e) { try { if (!e) return null; return { code: e.code ?? null, message: String(e.message || e.errorMessage || e).slice(0, 200), domain: e.domain ?? null }; } catch (x) { return null; } }
+const sinceAd = (k) => (adT0[k] ? Date.now() - adT0[k] : null);
 let umpState = null;       // last UMP info (status, canRequestAds, privacyOptionsRequirementStatus) or { error }
 function umpInfo() { return umpState; }
 // The AdMob app id this build ships with (manifest APPLICATION_ID must match). TEST id until Jonathan approves.
@@ -5068,8 +5228,8 @@ const DEBUG_GEOGRAPHY_EEA = 1;
  *  - status REQUIRED                    -> EEA ('ump_required'): Google only requires GDPR consent in the EEA/UK/CH
  *  - status OBTAINED                    -> EEA ('ump_obtained'): consent was required earlier (rc4/rc5 teen form)
  *  - status NOT_REQUIRED                -> not EEA ('ump_not_required')
- *  - UNKNOWN / error / timeout / no UMP -> EEA ('ump_unknown_conservative'). A real-id release gets no ads at all
- *    on a UMP error (umpDecision), so this only matters for TEST-id builds, where it errs on the safe side.
+ *  - UNKNOWN / error / timeout / no UMP -> EEA ('ump_unknown_conservative'). (1.0.4: the ad decision on a UMP error
+ *    uses regionFromSignals instead; this only drives the 13-15 teen treatment.)
  * privacyOptionsRequirementStatus is NOT used: US state-privacy messages can set it outside the EEA.
  */
 function umpRegion(info, debugGeography = 0) {
@@ -5086,61 +5246,260 @@ function umpDebugGeography() {
   return g;
 }
 function isTestAppId(id) { return typeof id === 'string' && id.startsWith('ca-app-pub-3940256099942544~'); }
+// ---- 1.0.4 (P0 hotfix, release/1.0.4-ump-plan.md): UMP failure fallback.
+// A UMP error / timeout no longer disables ads everywhere. Ads are requested after a UMP failure ONLY when the region
+// is known to be outside the EEA/UK/CH: (1) the cached result of the last SUCCESSFUL UMP answer (<= 30 days), else
+// (2) build flag UMP_FALLBACK_HEURISTIC: the device time zone AND the locale region agree on a non-European place.
+// EEA/UK/CH or unknown/ambiguous -> NO ads until UMP succeeds (retried every launch + on resume, see umpRetryDelay).
+// The audience's child flags (TFCD, TFUA, rating G, npa) are unchanged in every branch (adInitOptions/applyAudience).
+const UMP_FALLBACK_HEURISTIC = true;
+const LS_UMP_REGION = 'tl.ump.region.v1';
+const UMP_REGION_CACHE_MS = 30 * 24 * 3600 * 1000;
+// EU27 + IS, LI, NO (EEA) + GB (UK) + CH. ISO 3166-1 alpha-2 (UK accepted as an alias of GB).
+const EEA_UK_CH = Object.freeze(['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+  'IS', 'LI', 'NO', 'GB', 'UK', 'CH']);
+// Time zones that are (or may be) inside the EEA/UK/CH (1.0.4 wip-b, QA B2; audited against IANA zone.tab, see
+// tests/ump-fallback.mjs). All Europe/* (conservative: also non-EEA Europe such as Europe/Istanbul, Europe/Moscow),
+// plus every IANA zone (and backward link) of an EEA/UK/CH country or EU territory outside Europe/*:
+//  Cyprus Asia/Nicosia, Asia/Famagusta; Spain Atlantic/Canary, Africa/Ceuta (Ceuta + Melilla); Portugal
+//  Atlantic/Madeira, Atlantic/Azores; Iceland Atlantic/Reykjavik; Norway Arctic/Longyearbyen, Atlantic/Jan_Mayen,
+//  Antarctica/Troll; EU outermost regions Indian/Reunion, Indian/Mayotte, America/Guadeloupe, America/Martinique,
+//  America/Cayenne, America/Marigot; conservative extras (not EEA, but Danish / French / Turkish) Atlantic/Faroe,
+//  Atlantic/Faeroe, America/St_Barthelemy, Asia/Istanbul, the Greenland zones; legacy names WET CET MET EET GB
+//  GB-Eire Eire Iceland Poland Portugal Turkey.
+const EUROPE_TZ_EXTRA = new Set(['Asia/Nicosia', 'Asia/Famagusta', 'Atlantic/Canary', 'Africa/Ceuta', 'Atlantic/Madeira', 'Atlantic/Azores', 'Atlantic/Reykjavik',
+  'Arctic/Longyearbyen', 'Atlantic/Jan_Mayen', 'Antarctica/Troll', 'Indian/Reunion', 'Indian/Mayotte', 'America/Guadeloupe', 'America/Martinique', 'America/Cayenne', 'America/Marigot',
+  'Atlantic/Faroe', 'Atlantic/Faeroe', 'America/St_Barthelemy', 'Asia/Istanbul', 'America/Nuuk', 'America/Godthab', 'America/Danmarkshavn', 'America/Scoresbysund', 'America/Thule',
+  'WET', 'CET', 'MET', 'EET', 'GB', 'GB-Eire', 'Eire', 'Iceland', 'Poland', 'Portugal', 'Turkey']);
 /**
- * Pure UMP decision -> { canRequestAds, npa }.
- *  - error / timeout: a RELEASE build with a real app id gets NO ads; only a TEST-id build falls back to
- *    non-personalized TEST ads (Google's test app id has no UMP message configured, so UMP always errors).
- *  - NOT_REQUIRED (outside the EEA/UK/CH): personalized ads.
+ * Non-geographic zones say nothing about the country: UTC, GMT, Etc/*, Universal, Zulu, Greenwich, UCT, Factory,
+ * SystemV/*, and every other name without an Area/ prefix (EST, PST8PDT, ...). They count as unknown = European.
+ */
+function isNonGeographicTimeZone(tz) {
+  if (typeof tz !== 'string' || !tz) return true;
+  if (/^(Etc|SystemV)\//.test(tz)) return true;
+  if (!tz.includes('/')) return true; // no Area/ prefix (UTC, GMT, Zulu, EST, CET, GB, ...): never a country signal
+  return false;
+}
+/** May this zone be inside the EEA/UK/CH? Unknown / non-geographic -> true (never "non-EEA"). */
+function isEuropeanTimeZone(tz) {
+  if (isNonGeographicTimeZone(tz)) return true;
+  return tz.startsWith('Europe/') || EUROPE_TZ_EXTRA.has(tz);
+}
+// Languages spoken mainly in the EEA/UK/CH: a tag of one of these WITHOUT a region subtag (bare 'de') is ambiguous
+// (QA NB-3) and makes the tz+locale fallback unknown.
+const EEA_LANGS = Object.freeze(['bg', 'hr', 'cs', 'da', 'nl', 'et', 'fi', 'fr', 'de', 'el', 'hu', 'ga', 'it', 'lv', 'lt', 'mt', 'pl', 'pt', 'ro', 'sk', 'sl', 'es', 'sv',
+  'is', 'no', 'nb', 'nn', 'rm', 'lb', 'fo', 'ca', 'eu', 'gl', 'cy', 'gd', 'se', 'fy', 'sq', 'sr', 'bs', 'mk', 'gsw']);
+/** Region subtag of a BCP 47 tag ('de-DE' -> 'DE', 'zh-Hant-TW' -> 'TW', 'es-419' -> '419', 'en' -> null). */
+function localeRegion(tag) {
+  if (typeof tag !== 'string') return null;
+  const parts = tag.replace(/_/g, '-').split('-').slice(1);
+  for (const p of parts) { if (/^[A-Za-z]{2}$/.test(p)) return p.toUpperCase(); if (/^\d{3}$/.test(p)) return p; if (p.length > 4) break; }
+  return null;
+}
+/** Cached last-good UMP region { region: 'eea'|'non_eea', ts } or null (missing, corrupt, stale, from the future). */
+function readUmpRegionCache(storage, now = Date.now()) {
+  try {
+    const v = JSON.parse((storage && storage.getItem(LS_UMP_REGION)) || 'null');
+    if (v && (v.region === 'eea' || v.region === 'non_eea') && Number.isFinite(v.ts) && now - v.ts <= UMP_REGION_CACHE_MS && v.ts - now <= 24 * 3600 * 1000) return { region: v.region, ts: v.ts };
+  } catch (e) { /* corrupt: ignore */ }
+  return null;
+}
+function writeUmpRegionCache(storage, region, now = Date.now()) {
+  try { storage && storage.setItem(LS_UMP_REGION, JSON.stringify({ region, ts: now })); } catch (e) { /* ignore */ }
+}
+/**
+ * Pure: region when UMP failed -> { region: 'non_eea'|'eea'|'unknown', source: 'cache'|'tz_locale'|'none' }.
+ * cache: readUmpRegionCache() result. timeZone: IANA zone. locales: navigator.languages (the FIRST tag with a region
+ * subtag is used; every region-tagged entry must be non-European). heuristic: UMP_FALLBACK_HEURISTIC.
+ */
+function regionFromSignals({ cache = null, timeZone = null, locales = [], heuristic = UMP_FALLBACK_HEURISTIC } = {}) {
+  if (cache && (cache.region === 'eea' || cache.region === 'non_eea')) return { region: cache.region, source: 'cache' };
+  if (!heuristic) return { region: 'unknown', source: 'none' };
+  const tags = (Array.isArray(locales) ? locales : [locales]).filter((t) => typeof t === 'string' && t);
+  const regs = tags.map(localeRegion).filter(Boolean);
+  if (!timeZone || !regs.length) return { region: 'unknown', source: 'none' };
+  // NB-3: a region-less tag of an EEA language ('de', 'fr', ...) next to a non-European one is ambiguous
+  if (tags.some((t) => !localeRegion(t) && EEA_LANGS.includes(t.replace(/_/g, '-').split('-')[0].toLowerCase()))) return { region: 'unknown', source: 'none' };
+  if (isEuropeanTimeZone(timeZone)) return { region: 'unknown', source: 'none' };
+  if (regs.some((r) => EEA_UK_CH.includes(r) || r === '150' || r === '154' || r === '155' || r === '039')) return { region: 'unknown', source: 'none' };
+  return { region: 'non_eea', source: 'tz_locale' };
+}
+function deviceRegionSignals(storage, now) {
+  let timeZone = null, locales = [];
+  try { timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch (e) { /* none */ }
+  try { const n = typeof navigator !== 'undefined' ? navigator : null; locales = n ? (n.languages && n.languages.length ? [...n.languages] : n.language ? [n.language] : []) : []; } catch (e) { /* none */ }
+  return { cache: readUmpRegionCache(storage, now), timeZone, locales };
+}
+/** UMP error text -> kind (no raw text is ever logged: it contains the app id). */
+function classifyUmpError(msg, timedOut = false) {
+  const m = String(msg || '');
+  if (timedOut || /ump_timeout/.test(m)) return 'timeout';
+  if (/no form\(s\) configured|no form/i.test(m)) return 'no_form';
+  if (/misconfiguration|publisher.*configuration|app id/i.test(m)) return 'misconfig';
+  if (/network|internet|offline|connect|host|timed out|ssl|dns/i.test(m)) return 'network';
+  return 'other';
+}
+/** Config errors are not fixed by retrying in this session: they wait for the next cold start. */
+const UMP_CONFIG_ERROR_KINDS = Object.freeze(['no_form', 'misconfig']);
+const UMP_RETRY_DELAYS_MS = Object.freeze([60000, 300000, 1800000]); // on resume: 1 / 5 / 30 min after a failure
+const UMP_MAX_RESUME_RETRIES = 3;
+/** Pure: ms to wait (after the failure at hand) before the next resume retry, or null (no more retries this session). */
+function umpRetryDelay({ retriesDone = 0, kind = 'other' } = {}) {
+  if (UMP_CONFIG_ERROR_KINDS.includes(kind)) return null;
+  if (retriesDone >= UMP_MAX_RESUME_RETRIES) return null;
+  return UMP_RETRY_DELAYS_MS[retriesDone];
+}
+/**
+ * Pure UMP decision -> { canRequestAds, npa, reason }.
+ *  - error / timeout, TEST-id (or non-release) build: non-personalized TEST ads (Google's test app id has no UMP
+ *    message, so UMP always errors there) -- unless forced (QA switch), which applies the real-id table below.
+ *  - error / timeout, real app id (1.0.4): region.region 'non_eea' -> ads (npa); 'eea' / 'unknown' -> NO ads.
+ *  - NOT_REQUIRED (outside the EEA/UK/CH): personalized ads (the child/teen audience forces npa in applyAudience).
  *  - EEA/UK/CH: UMP decides: canRequestAds gates every request; with consent OBTAINED the TCF string governs
  *    personalization (npa false); anything else stays non-personalized.
  */
-function umpDecision(info, { release, appId }) {
+function umpDecision(info, { release, appId, timedOut = false, region = null, forced = false }) {
   if (!info || info.error) {
-    if (release && !isTestAppId(appId)) return { canRequestAds: false, npa: true, reason: 'ump_error_no_ads' };
-    return { canRequestAds: true, npa: true, reason: 'ump_error_test_fallback' };
+    const t = timedOut || /ump_timeout/.test(String((info && info.error) || '')) ? 'timeout' : 'error';
+    if (!forced && (!release || isTestAppId(appId))) return { canRequestAds: true, npa: true, reason: 'ump_error_test_fallback' };
+    const r = region && region.region;
+    if (r === 'non_eea') return { canRequestAds: true, npa: true, reason: `ump_${t}_fallback_non_eea` };
+    if (r === 'eea') return { canRequestAds: false, npa: true, reason: `ump_${t}_eea` };
+    return { canRequestAds: false, npa: true, reason: `ump_${t}_region_unknown` };
   }
   const can = !!info.canRequestAds;
   if (info.status === 'NOT_REQUIRED') return { canRequestAds: can, npa: false, reason: 'not_required_personalized' };
   if (info.status === 'OBTAINED') return { canRequestAds: can, npa: false, reason: 'obtained_tcf' };
   return { canRequestAds: can, npa: true, reason: 'ump_' + String(info.status || 'unknown').toLowerCase() };
 }
+/**
+ * Pure: local-only events for one UMP run (no PII: no raw error text, app id, time zone, locale or device id).
+ * Returns [[name, props], ...]. ads_disabled once per session per reason (seen = Set kept by the caller).
+ */
+function umpEvents({ info, decision, region, kind, phase = 'launch', attempt = 1, build = null, seen = null }) {
+  const out = [];
+  if (info && info.error) {
+    out.push(['ump_error', { kind, phase, attempt, region: (region && region.region) || 'unknown', region_source: (region && region.source) || 'none', decision: decision.canRequestAds ? 'ads' : 'no_ads', ...(build ? { build } : {}) }]);
+  }
+  if (!decision.canRequestAds) {
+    const reason = /^ump_(error|timeout)_/.test(decision.reason) ? decision.reason : 'ump_cannot_request';
+    if (!seen || !seen.has(reason)) { if (seen) seen.add(reason); out.push(['ads_disabled', { reason, region_source: (region && region.source) || 'none' }]); }
+  }
+  return out;
+}
 function withTimeout(p, ms) {
   return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('ump_timeout')), ms))]);
 }
+// QA-only switch (1.0.4): forces the UMP error/timeout. The default is "do nothing"; the real switch lives in the
+// tagged block below, which scripts/bundle.js strips from the shippable --prod-ads build (verifyAdIds [prod] fails
+// if any of it is left).
+let umpOverride = () => '';
+let umpAsk = (A, params) => A.requestConsentInfo(params);
+// @ump-force-start
+// UMP_FORCE (QA ONLY, never in the shippable prod bundle): "error" = requestConsentInfo rejects like the prod
+// "no form(s) configured" error; "timeout" = it never answers (the 10 s timeout fires); "" = off. Build-time value
+// from env UMP_FORCE (scripts/bundle.js); runtime override: localStorage 'tl.qa.UMP_FORCE' = error | timeout | off.
+// While forced, a TEST-id build applies the real-id decision table (no test fallback), so QA sees the prod behaviour.
+const UMP_FORCE = '';
+function readUMP_FORCE(storage) {
+  let v = UMP_FORCE;
+  try { const o = storage && storage.getItem('tl.qa.UMP_FORCE'); if (o === 'off') v = ''; else if (o === 'error' || o === 'timeout') v = o; } catch (e) { /* ignore */ }
+  return v === 'error' || v === 'timeout' ? v : '';
+}
+umpOverride = () => readUMP_FORCE(typeof window !== 'undefined' ? window.localStorage : null);
+umpAsk = (A, params, forced) => (forced === 'error' ? Promise.reject(new Error('UMP_FORCE: Publisher misconfiguration: no form(s) configured (QA forced)'))
+  : forced === 'timeout' ? new Promise(() => {}) : A.requestConsentInfo(params));
+// @ump-force-end
+function umpForcedMode() { return umpOverride(); }
+function lsOrNull() { try { return typeof window !== 'undefined' && window.localStorage ? window.localStorage : null; } catch (e) { return null; } }
+// Session retry state (resume retries) + the ads_disabled reasons already logged this session.
+const umpSession = { attempts: 0, resumeRetries: 0, nextRetryAt: null, succeeded: false, kind: null, seen: new Set(), events: [] };
+function umpRetryState() { return { ...umpSession, seen: [...umpSession.seen], events: umpSession.events.slice() }; }
+/** Local-only events produced by the UMP runs since the last call (ui.js passes them to trackEvent). */
+function takeUmpEvents() { const e = umpSession.events; umpSession.events = []; return e; }
+/** Tests only: fresh session. */
+function resetUmpSession() { Object.assign(umpSession, { attempts: 0, resumeRetries: 0, nextRetryAt: null, succeeded: false, kind: null, seen: new Set(), events: [] }); resetAdPreloads(); }
 /** Step 1 on EVERY launch, before any ad request: UMP consent info (timeout) -> form when REQUIRED. */
 async function runUmp(opts = {}) {
   const release = opts.release ?? RELEASE, appId = opts.appId ?? AD_APP_ID, timeoutMs = opts.timeoutMs ?? UMP_TIMEOUT_MS;
+  const phase = opts.phase || 'launch', now = opts.now ?? Date.now();
+  const storage = opts.storage !== undefined ? opts.storage : lsOrNull();
+  const forced = opts.forced !== undefined ? opts.forced : umpOverride();
   const A = adMob();
-  let info;
+  let info, timedOut = false;
   const geo = umpDebugGeography();
   const base = geo ? { debugGeography: geo, testDeviceIdentifiers: UMP_TEST_DEVICE_IDS.slice() } : {};
+  const ask = (params) => umpAsk(A, params, forced);
   // rc6: a 13-15 teen is asked WITHOUT the under-age tag first, only to learn the region; no form is shown yet.
   const eeaCheck = audience.bucket === 'teen' && !!audience.u16;
+  umpSession.attempts++;
   if (!A || !A.requestConsentInfo) info = { error: 'ump_unavailable' };
   else {
     try {
-      info = await withTimeout(A.requestConsentInfo(audience.umpUnderAge ? { ...base, tagForUnderAgeOfConsent: true } : base), timeoutMs);
+      info = await withTimeout(ask(audience.umpUnderAge ? { ...base, tagForUnderAgeOfConsent: true } : base), timeoutMs);
       if (eeaCheck) {
         const r = umpRegion(info, geo);
         audience = { ...audience, eea: r.eea, eeaReason: r.reason, analyticsAllowed: !r.eea }; // final: EEA/UK under 16 = analytics off
         // EEA/UK under 16: under the age of consent. UMP is re-asked with the tag, AdMob initialises with TFUA, no form.
-        if (r.eea) { audience = { ...audience, tfua: true, umpUnderAge: true }; info = await withTimeout(A.requestConsentInfo({ ...base, tagForUnderAgeOfConsent: true }), timeoutMs); }
+        if (r.eea) { audience = { ...audience, tfua: true, umpUnderAge: true }; info = await withTimeout(ask({ ...base, tagForUnderAgeOfConsent: true }), timeoutMs); }
       }
       // The form waits on the player, so it has no timeout. Under-age users (child; EEA/UK 13-15) never get the form.
       if (!audience.umpUnderAge && info && info.status === 'REQUIRED' && info.isConsentFormAvailable && A.showConsentForm) info = await A.showConsentForm();
       if (!info) info = { error: 'empty' };
-    } catch (e) { info = { error: String((e && e.message) || e) }; }
+    } catch (e) { info = { error: String((e && e.message) || e) }; timedOut = /ump_timeout/.test(info.error); }
   }
   // UMP unavailable / failed before the region was known: a 13-15 teen is treated as EEA (conservative).
   if (eeaCheck && audience.eea === null) {
     audience = { ...audience, eea: true, eeaReason: 'ump_unknown_conservative', tfua: true, umpUnderAge: true, analyticsAllowed: false };
   }
-  const d = applyAudience(umpDecision(info, { release, appId }));
-  umpState = { ...info, decision: d.reason, audience: audience.bucket, npa: d.npa, eea: audience.eea ?? null, tfua: !!audience.tfua };
+  let region = null, kind = null;
+  if (info.error) {
+    kind = classifyUmpError(info.error, timedOut);
+    region = regionFromSignals(opts.regionSignals ? { heuristic: UMP_FALLBACK_HEURISTIC, ...opts.regionSignals } : deviceRegionSignals(storage, now));
+    umpSession.kind = kind;
+    const delay = umpRetryDelay({ retriesDone: umpSession.resumeRetries, kind });
+    umpSession.nextRetryAt = delay === null ? null : now + delay;
+  } else {
+    umpSession.succeeded = true; umpSession.nextRetryAt = null; umpSession.kind = null;
+    const rg = umpRegion(info, 0);
+    if (!geo && ['REQUIRED', 'OBTAINED', 'NOT_REQUIRED'].includes(info.status)) writeUmpRegionCache(storage, rg.eea ? 'eea' : 'non_eea', now);
+  }
+  let realTable = !!forced; // QA: a forced failure applies the real-id table even in a TEST-id build
+  if (typeof window !== 'undefined' && window.__umpRealTable === true) realTable = true; // @test-hook
+  const d = applyAudience(umpDecision(info, { release, appId, timedOut, region, forced: realTable }));
+  umpState = { ...info, decision: d.reason, audience: audience.bucket, npa: d.npa, eea: audience.eea ?? null, tfua: !!audience.tfua,
+    ...(region ? { region: region.region, regionSource: region.source, kind } : {}), ...(forced ? { forced } : {}) };
+  if (umpState && adsNpa !== d.npa) dropPreloads('npa_changed'); // 1.0.6: a preloaded ad was requested with the old npa
   umpCanRequestAds = d.canRequestAds;
   adsNpa = d.npa;
+  adDiag('ump', { phase, status: info && info.status, error: info && info.error ? String(info.error).slice(0, 120) : null, canRequestAds: d.canRequestAds, npa: d.npa, reason: d.reason, audience: audience.bucket, region: region ? region.region : null });
+  // QA B1 (wip-b): a UMP answer that does not allow ads (e.g. a resume retry says EEA/UK/CH) stops ads at once for the
+  // rest of the session: adsReady false (no request / preload / show; initAds needs umpCanRequestAds again) and any ad
+  // still loading is cancelled. Only a later UMP answer that allows ads can turn them back on.
+  if (!d.canRequestAds) { adsReady = false; cancelPendingAds('ump_disabled'); }
+  umpSession.events.push(...umpEvents({ info, decision: d, region, kind, phase, attempt: umpSession.attempts, build: opts.build ?? null, seen: umpSession.seen }));
   return umpState;
 }
+/**
+ * 1.0.4: on resume (app visible again) after a UMP failure: retry once the backoff has passed (1 / 5 / 30 min, at
+ * most 3 per session; config errors wait for the next cold start). Returns null when no retry ran, else the new
+ * UMP state; AdMob is initialised when the retry allows ads and it is not initialised yet.
+ */
+async function umpRetryOnResume(opts = {}) {
+  const now = opts.now ?? Date.now();
+  if (umpSession.succeeded || umpSession.nextRetryAt === null || now < umpSession.nextRetryAt || umpSession.resumeRetries >= UMP_MAX_RESUME_RETRIES) return null;
+  if (umpSession.inFlight) return null;
+  umpSession.resumeRetries++;
+  umpSession.inFlight = true;
+  try {
+    const u = await runUmp({ ...opts, now, phase: 'resume_retry' });
+    if (umpCanRequestAds && !adsReady) await initAds();
+    return u;
+  } finally { umpSession.inFlight = false; }
+}
+/** NB-1: ads are off because UMP answered (or failed) and does not allow them; null before UMP ran. */
+function adsBlockedByUmp() { return umpState === null ? null : !umpCanRequestAds; }
 /** Step 2: AdMob init only after UMP, with the audience's request configuration (adInitOptions). */
 async function initAds() {
   const A = adMob(); if (!A) return false;
@@ -5148,7 +5507,10 @@ async function initAds() {
   try {
     await A.initialize(adInitOptions());
     adsReady = true;
-  } catch (e) { adsReady = false; }
+  } catch (e) { adsReady = false; adDiag('init_failed', adErr(e)); }
+  adDiag('init', { ready: adsReady });
+  // 1.0.6 r2 (Chief): the first rewarded load starts right here (UMP allowed ads), not when the hint unlocks
+  if (adsReady) preloadAd('rewarded', 'init');
   return adsReady;
 }
 /** About › Privacy: reopen Google's privacy options form (UMP). */
@@ -5165,21 +5527,109 @@ async function showUmpPrivacyOptions() {
 // ONLY when the reward is earned (dismiss / failed-to-show never settle the call), and resolves
 // showInterstitial() right after ad.show(). So every ad call here settles exactly once on the FIRST of:
 // plugin events, a load/show rejection, or a backstop timer; listeners and the timer are always cleaned up.
+// 1.0.6 (Chief, ads hotfix; the 1.0.5 emulator showed a 5 s on-demand rewarded load timing out every time):
+//  - PRELOAD. Ads are loaded ahead (preloadAd): the rewarded ad once ads are initialised and the hint is unlocked
+//    (ui.js maybePreloadRewarded), again right after each show; the interstitial when the next one comes due
+//    (ui.js noteClearForAds: one eligible clear before the cap gate opens). The plugin keeps the last prepared ad
+//    of each kind. A failed load retries with backoff (AD_RETRY_DELAYS_MS, at most AD_RETRY_MAX in a row; a Yes tap
+//    restarts it). A loaded ad older than AD_MAX_AGE_MS (AdMob ads expire after 1 h) is reloaded before use.
+//  - SHOW. Yes with a ready ad shows it at once. Not ready: the caller shows "Loading ad..." (onWait) for up to
+//    REWARDED_WAIT_MS with a Cancel; an ad that arrives in that window is shown. A load failure in the window, or the
+//    window running out, settles as a no-fill (the existing +1 / 3-a-day fallback in ui.js).
+//  - NEVER DROP A LATE AD. Whatever ends the wait (timeout, Cancel, navigation), the load keeps going and a late ad
+//    stays ready for the next Yes (or the next due interstitial). It is never shown without a new Yes / due gate.
 const AD_SHOW_TIMEOUT_MS = 60000;          // rewarded backstop, rc5 (QA NB-3): counted from show, NOT from the tap
-const REWARDED_LOAD_TIMEOUT_MS = 5000;     // 1.0.3 (spec §4 / Q10): no ad within ~5 s = no-fill (+1, max 3 a day); a late fill is never shown;    // rc5 (NB-3): rewarded load gets its own, separate timeout
+const REWARDED_WAIT_MS = 15000;            // 1.0.6 r2: "Loading ad..." window after Yes when no ad is ready (r1 10 s; the r1 emulator's first fill took 11.6 s; 1.0.5 was a 5 s on-demand load)
+const REWARDED_LOAD_TIMEOUT_MS = REWARDED_WAIT_MS; // name kept for the tests / callers
 const INTERSTITIAL_TIMEOUT_MS = 15000;     // interstitial backstop (load + show); Next never waits longer
 const INTERSTITIAL_CONFIRM_MS = 3000;      // after show() resolves: wait this long for Showed / FailedToShow
 const REWARD_GRACE_MS = 400;               // a reward event that lands just after Dismissed still counts
-let rewardedTimeoutMs = AD_SHOW_TIMEOUT_MS, rewardedLoadTimeoutMs = REWARDED_LOAD_TIMEOUT_MS, interstitialTimeoutMs = INTERSTITIAL_TIMEOUT_MS;
-/** Tests only: shorten the backstops (ms <= 0 restores the defaults). A number sets all three; an object sets each. */
+const AD_ONSCREEN_MAX_MS = 300000;         // 1.0.6 r2: once Showed arrived the ad is on screen; wait up to 5 min for Dismissed (r1 emulator: reward at 10 s, dismiss at 79 s)
+const AD_RETRY_DELAYS_MS = Object.freeze([5000, 15000, 60000]); // 1.0.6: preload retry backoff (then 60 s each)
+const AD_RETRY_MAX = 6;                    // consecutive failed preloads before pausing (until a Yes / a new due gate)
+const AD_LOAD_WATCHDOG_MS = 65000;         // a prepare call that never settles (SDK HTTP timeout is 60 s) frees the slot
+const AD_MAX_AGE_MS = 55 * 60 * 1000;      // AdMob full-screen ads expire 1 h after load
+let rewardedTimeoutMs = AD_SHOW_TIMEOUT_MS, rewardedLoadTimeoutMs = REWARDED_WAIT_MS, interstitialTimeoutMs = INTERSTITIAL_TIMEOUT_MS, onScreenMs = AD_ONSCREEN_MAX_MS;
+let retryDelays = AD_RETRY_DELAYS_MS;
+/** Tests only: shorten the backstops (ms <= 0 restores the defaults). A number sets all three; an object sets each
+ *  (rewardedShow, rewardedLoad = the Loading-ad window, interstitial, retry = [ms, ...] preload backoff, onScreen = the
+ *  Showed -> Dismissed backstop). */
 function setAdTimeoutMs(ms) {
   const o = typeof ms === 'object' && ms ? ms : { rewardedShow: ms, rewardedLoad: ms, interstitial: ms };
   rewardedTimeoutMs = o.rewardedShow > 0 ? o.rewardedShow : AD_SHOW_TIMEOUT_MS;
-  rewardedLoadTimeoutMs = o.rewardedLoad > 0 ? o.rewardedLoad : REWARDED_LOAD_TIMEOUT_MS;
+  rewardedLoadTimeoutMs = o.rewardedLoad > 0 ? o.rewardedLoad : REWARDED_WAIT_MS;
   interstitialTimeoutMs = o.interstitial > 0 ? o.interstitial : INTERSTITIAL_TIMEOUT_MS;
+  retryDelays = Array.isArray(o.retry) && o.retry.length ? o.retry.slice() : AD_RETRY_DELAYS_MS;
+  onScreenMs = o.onScreen > 0 ? o.onScreen : AD_ONSCREEN_MAX_MS;
 }
+// 1.0.6 preload state per kind: idle | loading | ready | showing. waiters get 'ready' / 'failed'.
+const mkPre = () => ({ status: 'idle', loadedAt: 0, startedAt: 0, fails: 0, retryTimer: null, watchdog: null, token: 0, waiters: new Set(), loads: 0 });
+const pre = { rewarded: mkPre(), interstitial: mkPre() };
+const canRequest = () => !!adMob() && adsReady && umpCanRequestAds;
+/** A new session (tests: resetUmpSession): forget loaded ads, timers and waiters. */
+function resetAdPreloads() { rewardedHold = null; for (const k of Object.keys(pre)) { const p = pre[k]; clearTimeout(p.retryTimer); clearTimeout(p.watchdog); pre[k] = mkPre(); pre[k].token = p.token + 1; } }
+/** Tests / diag: the preload state ({ status, fails, loads, retrying }). */
+function adPreloadState() { const o = {}; for (const k of Object.keys(pre)) { const p = pre[k]; o[k] = { status: p.status, fails: p.fails, loads: p.loads, retrying: !!p.retryTimer }; } return o; }
+function preReady(k) {
+  const p = pre[k];
+  if (p.status === 'ready' && Date.now() - p.loadedAt > AD_MAX_AGE_MS) { p.status = 'idle'; adDiag(k + '_expired', {}); }
+  return p.status === 'ready';
+}
+function preNotify(k, ev) { for (const w of [...pre[k].waiters]) { try { w(ev); } catch (e) { /* ignore */ } } }
+/** Stop every pending retry (UMP turned ads off). Ready ads stay, but nothing is shown while ads are off. */
+function stopPreloads(why) { for (const k of Object.keys(pre)) { const p = pre[k]; if (p.retryTimer) { clearTimeout(p.retryTimer); p.retryTimer = null; adDiag(k + '_retry_stopped', { why }); } } }
+/** Forget loaded ads (consent / npa changed: they were requested with the old setting). */
+function dropPreloads(why) { for (const k of Object.keys(pre)) { const p = pre[k]; if (p.status === 'ready') { p.status = 'idle'; adDiag(k + '_dropped', { why }); } } }
+/**
+ * 1.0.6: load an ad of kind 'rewarded' | 'interstitial' ahead of time. Idempotent: does nothing when one is ready or
+ * loading, or (unless why is 'yes' / 'due') while a retry is pending or the retry budget is spent. Returns true when
+ * an ad is ready or loading afterwards.
+ */
+function preloadAd(k, why = 'preload') {
+  const A = adMob(), p = pre[k];
+  if (!p || !canRequest()) return false;
+  if (preReady(k) || p.status === 'loading') return true;
+  if (p.status === 'showing') return false;
+  const forced = why === 'yes' || why === 'due';
+  if (!forced && why !== 'retry' && (p.retryTimer || p.fails >= AD_RETRY_MAX)) return !!p.retryTimer;
+  if (forced) { p.fails = 0; }
+  clearTimeout(p.retryTimer); p.retryTimer = null;
+  const token = ++p.token; p.status = 'loading'; p.startedAt = Date.now(); p.loads++;
+  adDiag(k + '_load', { why, attempt: p.fails + 1, npa: adsNpa });
+  clearTimeout(p.watchdog);
+  p.watchdog = setTimeout(() => { if (p.token === token && p.status === 'loading') { p.status = 'idle'; adDiag(k + '_load_watchdog', { ms: Date.now() - p.startedAt }); preNotify(k, 'failed'); } }, AD_LOAD_WATCHDOG_MS);
+  let call;
+  try {
+    call = k === 'rewarded'
+      ? A.prepareRewardVideoAd({ adId: AD_TEST_IDS.rewarded, isTesting: true, npa: adsNpa })
+      : A.prepareInterstitial({ adId: AD_TEST_IDS.interstitial, isTesting: true, npa: adsNpa });
+  } catch (e) { call = Promise.reject(e); }
+  Promise.resolve(call).then(() => {
+    // a late answer of a call the watchdog gave up on still counts if nothing newer is loading (never drop an ad)
+    if (p.token !== token && p.status === 'loading') return;
+    clearTimeout(p.watchdog); p.status = 'ready'; p.loadedAt = Date.now(); p.fails = 0;
+    adDiag(k + '_loaded', { ms: Date.now() - p.startedAt, why });
+    preNotify(k, 'ready');
+  }, (e) => {
+    if (p.token !== token) return;
+    clearTimeout(p.watchdog); p.status = 'idle'; p.fails++;
+    adDiag(k + '_failed_to_load', { ms: Date.now() - p.startedAt, attempt: p.fails, err: adErr(e) });
+    preNotify(k, 'failed');
+    if (p.fails < AD_RETRY_MAX && canRequest()) {
+      const d = retryDelays[Math.min(p.fails - 1, retryDelays.length - 1)];
+      adDiag(k + '_retry', { inMs: d, attempt: p.fails + 1 });
+      p.retryTimer = setTimeout(() => { p.retryTimer = null; preloadAd(k, 'retry'); }, d);
+    } else adDiag(k + '_retry_paused', { fails: p.fails });
+  });
+  return true;
+}
+/** 1.0.6: the interstitial preload (ui.js calls it when the next interstitial is about to come due). */
+function preloadInterstitial(why = 'due_soon') { return preloadAd('interstitial', why); }
+/** 1.0.6: the rewarded preload (ui.js calls it when the ad hint can be offered). */
+function preloadRewarded(why = 'preload') { return preloadAd('rewarded', why); }
 // rc5 (QA NB-2): the in-flight ad call, so a navigation (Restart, level pick, tab, Daily) can cancel it while it is
-// still LOADING. Once show() has been called the ad is (about to be) full screen and settles through its events.
+// still LOADING (1.0.6: while waiting for the preload). Once show() has been called the ad is (about to be) full
+// screen and settles through its events. A cancelled wait never drops the ad being loaded.
 const pendingAd = { interstitial: null, rewarded: null };
 /** Cancel any ad that has not started showing yet. Returns the kinds that were cancelled. */
 function cancelPendingAds(reason = 'cancelled') {
@@ -5188,14 +5638,37 @@ function cancelPendingAds(reason = 'cancelled') {
     const p = pendingAd[k];
     if (p && p.phase === 'load' && !p.s.done) { p.s.finish(k === 'interstitial' ? { shown: false, outcome: reason } : reason); out.push(k); }
   }
+  if (reason === 'ump_disabled') stopPreloads(reason);
   return out;
 }
+/** 1.0.6: the player tapped Cancel on "Loading ad...": ends the wait ('user_cancel'); the ad keeps loading.
+ * r2 (Chief): the app went to the background during the wait -> reason 'backgrounded' (no ad, no hint; the ad is kept and
+ * a fresh Yes is needed on return). */
+function cancelRewardedWait(reason = 'user_cancel') {
+  const p = pendingAd.rewarded;
+  if (p && p.phase === 'load' && !p.s.done) {
+    adDiag(reason === 'backgrounded' ? 'rewarded_wait_backgrounded' : 'rewarded_wait_cancel', { ms: sinceAd('rewarded') });
+    p.s.finish(reason); return true;
+  }
+  return false;
+}
+// 1.0.6 r2 (Chief): never show an ad while the app is in the background (WebView document hidden = Activity paused).
+// Read just before show(): once the ad's own Activity is on top the document is hidden, which is expected then.
+function appHidden() { try { return typeof document !== 'undefined' && document.visibilityState === 'hidden'; } catch (e) { return false; } }
+// 1.0.6 r2: called when a full-screen ad goes away (Dismissed), so ui.js can guard board taps right after it
+let adClosedHook = null;
+function setAdClosedHook(fn) { adClosedHook = typeof fn === 'function' ? fn : null; }
+function adClosed(kind) { if (adClosedHook) { try { adClosedHook(kind); } catch (e) { /* ignore */ } } }
+// r2.2: a rewarded ad that may still be on screen after a backstop (see showRewardedHintAd); released once
+let rewardedHold = null;
+/** 1.0.6 r2.2: the app came back to the foreground: a rewarded ad held after a backstop is gone now -> reload once. */
+function adsResumed() { if (rewardedHold) { rewardedHold('resume'); return true; } return false; }
 let lastOutcome = { rewarded: null, interstitial: null };
 function lastAdOutcome() { return { ...lastOutcome }; }
 async function listenAll(A, map) {
   const hs = [];
   if (!A.addListener) return hs;
-  for (const ev of Object.keys(map)) { try { hs.push(await A.addListener(ev, map[ev])); } catch (e) { /* ignore */ } }
+  for (const ev of Object.keys(map)) { try { const h = await A.addListener(ev, map[ev]); try { if (h && typeof h === 'object') h.tlEv = ev; } catch (e) { /* frozen */ } hs.push(h); } catch (e) { /* ignore */ } }
   return hs;
 }
 function removeAll(hs) {
@@ -5210,6 +5683,8 @@ function settleOnce() {
  * Interstitial at level end. Resolves { shown, outcome } and NEVER hangs: shown is true only when the plugin
  * reported Showed (or Dismissed). Failed to load / failed to show / rejected / unconfirmed / timeout: shown false,
  * so the caller does not count it against the cap.
+ * 1.0.6: a preloaded interstitial is shown at once; otherwise it loads now (same 15 s backstop as before) and a late
+ * one stays ready for the next due interstitial.
  */
 // final (Chief, QA rc6 NB-4): every listener is removed when the call settles, whatever the outcome (showed,
 // unconfirmed, timeout, failed, cancelled): the listener count goes back to 0, there is no late-Showed window any
@@ -5218,82 +5693,172 @@ function settleOnce() {
 // the ad really did show.
 async function showInterstitialAd({ shouldShow = null, onUnconfirmed = null } = {}) {
   const A = adMob();
-  if (!A || !adsReady) { lastOutcome.interstitial = 'unavailable'; return { shown: false, outcome: 'unavailable' }; }
+  if (!canRequest()) { adDiag('interstitial_unavailable', { plugin: !!A, ready: adsReady, canRequestAds: umpCanRequestAds }); lastOutcome.interstitial = 'unavailable'; return { shown: false, outcome: 'unavailable' }; }
+  adT0.interstitial = Date.now();
   const s = settleOnce();
-  const me = { s, phase: 'load' }; pendingAd.interstitial = me;
-  let confirmTimer = null;
+  const me = { s, phase: 'load', dismissed: false, tail: null }; pendingAd.interstitial = me;
+  let confirmTimer = null, waiter = null;
+  // 1.0.6 r2: the call still settles on Showed (the level advances as before), but the Dismissed listener stays until the
+  // ad leaves the screen (or AD_ONSCREEN_MAX_MS): only then is the next interstitial loaded (never on Showed).
+  const onDismissed = () => {
+    if (me.dismissed) return; me.dismissed = true;
+    adDiag('interstitial_dismissed', { ms: sinceAd('interstitial') }); adClosed('interstitial');
+    s.finish({ shown: true, outcome: 'dismissed' });
+    if (me.tail) me.tail();
+  };
   const hs = await listenAll(A, {
-    interstitialAdShowed: () => s.finish({ shown: true, outcome: 'showed' }),
-    interstitialAdDismissed: () => s.finish({ shown: true, outcome: 'dismissed' }),
-    interstitialAdFailedToShow: () => s.finish({ shown: false, outcome: 'failed_to_show' }),
-    interstitialAdFailedToLoad: () => s.finish({ shown: false, outcome: 'failed_to_load' }),
+    interstitialAdShowed: () => { adDiag('interstitial_showed', { ms: sinceAd('interstitial') }); s.finish({ shown: true, outcome: 'showed' }); },
+    interstitialAdDismissed: onDismissed,
+    interstitialAdFailedToShow: (e) => { adDiag('interstitial_failed_to_show', { ms: sinceAd('interstitial'), err: adErr(e) }); s.finish({ shown: false, outcome: 'failed_to_show' }); },
   });
   const timer = setTimeout(() => s.finish({ shown: false, outcome: 'timeout' }), interstitialTimeoutMs);
-  (async () => {
+  const startShow = async () => {
     if (s.done) return;
-    try { await A.prepareInterstitial({ adId: AD_TEST_IDS.interstitial, isTesting: true, npa: adsNpa }); }
-    catch (e) { s.finish({ shown: false, outcome: 'load_rejected' }); return; }
-    if (s.done) return; // cancelled / timed out while loading: a late load is never shown
-    if (shouldShow && !shouldShow()) { s.finish({ shown: false, outcome: 'cancelled' }); return; }
-    me.phase = 'show';
+    pre.interstitial.waiters.delete(waiter);
+    if (shouldShow && !shouldShow()) { s.finish({ shown: false, outcome: 'cancelled' }); return; } // the ad stays ready
+    if (appHidden()) { adDiag('interstitial_not_shown_background', {}); s.finish({ shown: false, outcome: 'backgrounded' }); return; } // kept
+    me.phase = 'show'; pre.interstitial.status = 'showing'; // consumed: the plugin shows the prepared ad once
     // rc6 (QA rc5 NB-1): the load backstop ends the moment show() is called, so a show already in progress can
     // never settle as 'timeout' (shown false: level advanced under the ad, cap not counted). From here only the
     // ad's own events or the short confirm timer settle it (started now in case show() itself never returns).
     clearTimeout(timer);
     const confirmMs = Math.min(INTERSTITIAL_CONFIRM_MS, interstitialTimeoutMs);
     confirmTimer = setTimeout(() => s.finish({ shown: false, outcome: 'unconfirmed' }), confirmMs);
+    adDiag('interstitial_show', { ms: sinceAd('interstitial') });
     try { await A.showInterstitial(); }
-    catch (e) { s.finish({ shown: false, outcome: 'show_rejected' }); return; }
+    catch (e) { adDiag('interstitial_show_rejected', { err: adErr(e) }); s.finish({ shown: false, outcome: 'show_rejected' }); return; }
     if (s.done) return;
     // 8.2.1 resolves right after ad.show(): wait briefly for the Showed / FailedToShow event.
     clearTimeout(confirmTimer);
     confirmTimer = setTimeout(() => s.finish({ shown: false, outcome: 'unconfirmed' }), confirmMs);
-  })();
+  };
+  if (preReady('interstitial')) { adDiag('interstitial_ready', { preloaded: true }); startShow(); }
+  else {
+    waiter = (ev) => { if (ev === 'ready') startShow(); else s.finish({ shown: false, outcome: 'failed_to_load' }); };
+    pre.interstitial.waiters.add(waiter);
+    adDiag('interstitial_wait', { status: pre.interstitial.status, timeoutMs: interstitialTimeoutMs });
+    if (!preloadAd('interstitial', 'due')) s.finish({ shown: false, outcome: 'load_rejected' });
+  }
   const r = await s.promise;
-  clearTimeout(timer); clearTimeout(confirmTimer); removeAll(hs);
+  pre.interstitial.waiters.delete(waiter);
+  clearTimeout(timer); clearTimeout(confirmTimer);
+  const afterDismiss = () => { if (pre.interstitial.status === 'showing') pre.interstitial.status = 'idle'; preloadAd('interstitial', 'after_dismiss'); };
+  if (r.shown && r.outcome === 'showed' && !me.dismissed) {
+    // on screen: keep ONLY the Dismissed listener; everything else goes now
+    const keep = hs.filter((h) => h && h.tlEv === 'interstitialAdDismissed');
+    removeAll(hs.filter((h) => !keep.includes(h)));
+    const tailTimer = setTimeout(() => { me.tail = null; removeAll(keep); if (pre.interstitial.status === 'showing') pre.interstitial.status = 'idle'; adDiag('interstitial_dismiss_backstop', { ms: sinceAd('interstitial') }); }, onScreenMs);
+    me.tail = () => { clearTimeout(tailTimer); me.tail = null; removeAll(keep); afterDismiss(); };
+  } else {
+    removeAll(hs);
+    if (me.phase === 'show') { if (me.dismissed) afterDismiss(); else if (pre.interstitial.status === 'showing') pre.interstitial.status = 'idle'; }
+  }
   if (pendingAd.interstitial === me) pendingAd.interstitial = null;
   lastOutcome.interstitial = r.outcome;
+  adDiag('interstitial_result', { outcome: r.outcome, shown: r.shown, ms: sinceAd('interstitial') });
   if (r.outcome === 'unconfirmed' && onUnconfirmed) { try { onUnconfirmed(); } catch (e) { /* ignore */ } }
   return r;
 }
 
 /**
- * Opt-in rewarded hint. Resolves true ONLY when the onRewardedVideoAdReward event fired (the hint is granted on
- * that event alone; the show() resolution grants nothing). Closed early (Dismissed), failed to load, failed to
- * show, any rejection, the load timeout or the ~60 s show backstop: resolves false. Always settles, so the caller
- * can re-enable. rc5 (NB-3): two separate timers: REWARDED_LOAD_TIMEOUT_MS runs while loading (outcome
- * 'load_timeout'); the 60 s AD_SHOW_TIMEOUT_MS starts only when showRewardVideoAd() is called (outcome 'timeout').
+ * Opt-in rewarded hint. Resolves true ONLY when the onRewardedVideoAdReward event fired. 1.0.6 r2 (Chief) reward timing:
+ *  - the reward event calls onReward() at once (ui.js persists a PENDING reward in the hint record, nothing visible);
+ *  - the call settles on Dismissed (the ad has left the screen), so the caller applies the hint visibly then; a reward that
+ *    lands up to REWARD_GRACE_MS after Dismissed still counts; Dismissed without a reward = no hint (as before);
+ *  - an app killed between the reward and the dismiss keeps the pending reward; ui.js applies it at the next start;
+ *  - the next rewarded ad is loaded ONLY after Dismissed (or when the ad never reached the screen: failed to show / show
+ *    rejected), never on Showed or the reward, so nothing loads while an ad is on screen.
+ * Other outcomes as in r1: ready ad shown at once; otherwise onWait(true) + "Loading ad..." for up to REWARDED_WAIT_MS
+ * ('load_timeout'), Cancel = 'user_cancel'. Backstops: AD_SHOW_TIMEOUT_MS from show() until Showed, then
+ * AD_ONSCREEN_MAX_MS until Dismissed (outcome 'timeout'; a reward already received still counts).
+ * r2.2: either backstop GRANTS a received reward (intended, QA NB-r2-2: a reward without Showed is granted at the 60 s
+ * pre-Showed backstop) but never reloads while the ad may still be up: the reload waits for a late Dismissed or the next
+ * app foreground (adsResumed), once. A show backstop with no Showed and no reward reloads at once (never on screen).
  */
-async function showRewardedHintAd({ shouldShow = null } = {}) {
+async function showRewardedHintAd({ shouldShow = null, onWait = null, onReward = null } = {}) {
   const A = adMob();
-  if (!A || !adsReady) { lastOutcome.rewarded = 'unavailable'; return false; }
+  if (!canRequest()) { adDiag('rewarded_unavailable', { plugin: !!A, ready: adsReady, canRequestAds: umpCanRequestAds }); lastOutcome.rewarded = 'unavailable'; return false; }
+  adT0.rewarded = Date.now();
   const s = settleOnce();
-  const me = { s, phase: 'load' }; pendingAd.rewarded = me;
-  let rewarded = false, graceTimer = null;
+  const me = { s, phase: 'load', dismissed: false, showed: false }; pendingAd.rewarded = me;
+  let rewarded = false, graceTimer = null, showTimer = null, waitTimer = null, waiter = null, waiting = false;
+  const wait = (on) => { if (waiting === on) return; waiting = on; if (onWait) { try { onWait(on); } catch (e) { /* ignore */ } } };
   const hs = await listenAll(A, {
-    onRewardedVideoAdReward: () => { rewarded = true; s.finish('rewarded'); },
-    onRewardedVideoAdDismissed: () => { clearTimeout(graceTimer); graceTimer = setTimeout(() => s.finish('dismissed'), REWARD_GRACE_MS); },
-    onRewardedVideoAdFailedToShow: () => s.finish('failed_to_show'),
-    onRewardedVideoAdFailedToLoad: () => s.finish('failed_to_load'),
+    onRewardedVideoAdReward: (r) => {
+      adDiag('rewarded_reward', { ms: sinceAd('rewarded'), type: r && r.type, amount: r && r.amount, pending: true });
+      if (!rewarded) { rewarded = true; if (onReward) { try { onReward(); } catch (e) { /* ignore */ } } }
+      if (me.dismissed) s.finish('rewarded'); // a reward inside the grace window after Dismissed
+    },
+    onRewardedVideoAdDismissed: () => {
+      adDiag('rewarded_dismissed', { ms: sinceAd('rewarded'), rewarded, late: !!me.lateHold });
+      if (me.lateHold) { adClosed('rewarded'); me.lateHold('dismiss'); return; } // r2.2: after the backstop (already settled)
+      me.dismissed = true; clearTimeout(showTimer); adClosed('rewarded');
+      if (rewarded) s.finish('rewarded');
+      else { clearTimeout(graceTimer); graceTimer = setTimeout(() => s.finish(rewarded ? 'rewarded' : 'dismissed'), REWARD_GRACE_MS); }
+    },
+    onRewardedVideoAdFailedToShow: (e) => { adDiag('rewarded_failed_to_show', { ms: sinceAd('rewarded'), err: adErr(e) }); me.notShown = true; s.finish('failed_to_show'); },
+    onRewardedVideoAdShowed: () => {
+      adDiag('rewarded_showed', { ms: sinceAd('rewarded') });
+      me.showed = true; clearTimeout(showTimer); showTimer = setTimeout(() => s.finish(rewarded ? 'rewarded' : 'timeout'), onScreenMs);
+    },
   });
-  let showTimer = null;
-  const loadTimer = setTimeout(() => s.finish('load_timeout'), rewardedLoadTimeoutMs);
-  (async () => {
+  const startShow = async () => {
     if (s.done) return;
-    try { await A.prepareRewardVideoAd({ adId: AD_TEST_IDS.rewarded, isTesting: true, npa: adsNpa }); }
-    catch (e) { s.finish('load_rejected'); return; }
-    clearTimeout(loadTimer);
-    if (s.done) return; // load timed out / cancelled: a late load is never shown
-    if (shouldShow && !shouldShow()) { s.finish('cancelled'); return; }
-    me.phase = 'show'; me.showAt = Date.now();
-    showTimer = setTimeout(() => s.finish('timeout'), rewardedTimeoutMs);
-    try { await A.showRewardVideoAd(); } catch (e) { s.finish('show_rejected'); }
-  })();
+    pre.rewarded.waiters.delete(waiter); clearTimeout(waitTimer);
+    if (shouldShow && !shouldShow()) { s.finish('cancelled'); return; } // the ad stays ready for the next Yes
+    if (!canRequest()) { s.finish('ump_disabled'); return; }
+    if (appHidden()) { adDiag('rewarded_not_shown_background', {}); s.finish('backgrounded'); return; } // kept for a fresh Yes
+    wait(false);
+    me.phase = 'show'; me.showAt = Date.now(); pre.rewarded.status = 'showing'; // consumed (no preload while it is on screen)
+    showTimer = setTimeout(() => s.finish(rewarded ? 'rewarded' : 'timeout'), rewardedTimeoutMs);
+    adDiag('rewarded_show', { ms: sinceAd('rewarded') });
+    // 8.2.1 resolves this on the reward only; the call settles on Dismissed (above), so its resolution is ignored
+    try { await A.showRewardVideoAd(); } catch (e) { adDiag('rewarded_show_rejected', { err: adErr(e) }); me.notShown = true; s.finish('show_rejected'); }
+  };
+  if (preReady('rewarded')) { adDiag('rewarded_ready', { preloaded: true }); startShow(); }
+  else {
+    waiter = (ev) => { if (ev === 'ready') startShow(); else s.finish('failed_to_load'); };
+    pre.rewarded.waiters.add(waiter);
+    adDiag('rewarded_wait', { status: pre.rewarded.status, waitMs: rewardedLoadTimeoutMs });
+    // r2.2 (Chief, NB-r2-3): the window counts from the Yes tap (adT0), not from here: a slow native listener setup above
+    // (the Mac: 19 s) must not stretch it. At most REWARDED_WAIT_MS from the tap.
+    const waitLeft = Math.max(0, rewardedLoadTimeoutMs - (Date.now() - adT0.rewarded));
+    waitTimer = setTimeout(() => { if (!s.done) adDiag('rewarded_load_timeout', { ms: sinceAd('rewarded') }); s.finish('load_timeout'); }, waitLeft);
+    if (!preloadAd('rewarded', 'yes')) s.finish('load_rejected');
+    else if (!s.done) wait(true);
+  }
   const outcome = await s.promise;
-  clearTimeout(loadTimer); clearTimeout(showTimer); clearTimeout(graceTimer); removeAll(hs);
+  pre.rewarded.waiters.delete(waiter);
+  wait(false);
+  clearTimeout(waitTimer); clearTimeout(showTimer); clearTimeout(graceTimer);
+  // r2.2 (Chief, QA NB-r2-1 / NB-r2-2): a backstop ended the call while the ad MAY still be on screen (it showed, or a
+  // reward came without Showed, and no Dismissed): the reward is granted now (ui.js), but nothing is reloaded yet. The
+  // slot stays 'showing' (preloadAd refuses every load) and only the Dismissed listener is kept; the next load starts
+  // once, on whichever comes first: that late Dismissed or the next app foreground (adsResumed, from ui.js).
+  const mayBeUp = me.phase === 'show' && (outcome === 'timeout' || outcome === 'rewarded') && !me.dismissed && !me.notShown && (me.showed || rewarded); // a backstop (no Dismissed)
+  const keep = mayBeUp ? hs.filter((h) => h && h.tlEv === 'onRewardedVideoAdDismissed') : [];
+  removeAll(hs.filter((h) => !keep.includes(h)));
   if (pendingAd.rewarded === me) pendingAd.rewarded = null;
   lastOutcome.rewarded = outcome;
-  return rewarded && outcome === 'rewarded';
+  adDiag('rewarded_result', { outcome, rewarded, ms: sinceAd('rewarded'), shown: me.phase === 'show', dismissed: me.dismissed });
+  if (mayBeUp) {
+    adDiag('rewarded_backstop_hold', { showed: me.showed, rewarded });
+    const release = (why) => {
+      if (rewardedHold !== release) return; // once
+      rewardedHold = null; me.lateHold = null; removeAll(keep);
+      if (pre.rewarded.status === 'showing') pre.rewarded.status = 'idle';
+      adDiag('rewarded_hold_released', { why });
+      preloadAd('rewarded', why === 'dismiss' ? 'after_late_dismiss' : 'after_resume');
+    };
+    rewardedHold = me.lateHold = release;
+  } else if (me.phase === 'show') {
+    if (pre.rewarded.status === 'showing') pre.rewarded.status = 'idle';
+    // the next one: only once the ad is gone (Dismissed), or when it never reached the screen
+    if (me.dismissed) preloadAd('rewarded', 'after_dismiss');
+    else if (me.notShown) preloadAd('rewarded', 'after_show_failed');
+    else if (outcome === 'timeout') preloadAd('rewarded', 'after_show_timeout'); // no Showed, no reward: never on screen
+  }
+  return rewarded && (outcome === 'rewarded' || outcome === 'timeout');
 }
 
 // ---- src/consent-copy.js ----
@@ -5332,6 +5897,10 @@ const AGE_COPY = {
 const AD_COPY = {
   label: 'Watch an ad for a hint',
   short: 'Ad hint',
+  loading: 'Loading ad…', // 1.0.6: no preloaded ad yet (r2: up to 15 s, with Cancel)
+  almost: 'Almost ready…', // 1.0.6 r2 (Chief): the wait text after about 5 s
+  cancel: 'Cancel',
+  showFailed: "The ad didn't play. +1 hint", // 1.0.6 r2: the ad failed to show -> free hint (no-fill cap)
 };
 // The ONE privacy policy URL (in-app links: header, footer, About, prompt; the same URL goes in Play Console).
 // final: the policy on plumwit.com (moved from the interim GitHub Pages copy on 2026-10-08; DNS for plumwit.com was not
@@ -5495,6 +6064,174 @@ function showAgeScreen(doc, nowYear) {
     sel.addEventListener('change', sync); sel.addEventListener('input', sync);
     btn.addEventListener('click', () => { if (btn.disabled) return; const y = parseInt(sel.value, 10); el.remove(); resolve(y); });
   });
+}
+
+// ---- src/about-assets.js ----
+// GENERATED by scripts/import-about-assets.py (1.0.5 About v2). Do not edit.
+const ABOUT_ICON_SRC = "data:image/png;base64,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";
+const ABOUT_WORDMARK_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 5494 1260\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#FFFFFF\" d=\"M200 1038V428H11V293H541V428H355V1038Z M870 1050Q783 1050 719.0 1011.5Q655 973 620.0 908.0Q585 843 585 764Q585 682 621.5 618.0Q658 554 720.0 517.0Q782 480 860 480Q925 480 975.0 500.5Q1025 521 1059.5 558.0Q1094 595 1112.0 643.5Q1130 692 1130 749Q1130 765 1128.5 780.5Q1127 796 1123 807H714V697H1038L967 749Q977 706 966.0 672.5Q955 639 927.5 619.5Q900 600 860 600Q821 600 793.0 619.0Q765 638 751.0 675.0Q737 712 740 765Q736 811 751.0 846.0Q766 881 797.0 900.5Q828 920 872 920Q912 920 940.5 904.0Q969 888 985 860L1105 917Q1089 957 1054.5 987.0Q1020 1017 973.0 1033.5Q926 1050 870 1050Z M1432 1050Q1342 1050 1275.5 1007.5Q1209 965 1185 893L1295 841Q1316 885 1352.0 910.0Q1388 935 1432 935Q1464 935 1481.0 922.0Q1498 909 1498 886Q1498 874 1492.0 865.5Q1486 857 1474.0 850.0Q1462 843 1444 838L1351 812Q1284 793 1248.0 750.5Q1212 708 1212 650Q1212 599 1238.0 561.0Q1264 523 1311.0 501.5Q1358 480 1419 480Q1499 480 1559.5 517.5Q1620 555 1645 623L1534 675Q1522 641 1490.5 620.5Q1459 600 1419 600Q1390 600 1373.5 612.0Q1357 624 1357 645Q1357 656 1363.0 665.0Q1369 674 1382.5 681.0Q1396 688 1416 694L1503 720Q1571 740 1607.0 780.5Q1643 821 1643 880Q1643 931 1616.5 969.0Q1590 1007 1543.0 1028.5Q1496 1050 1432 1050Z M1947 1050Q1857 1050 1790.5 1007.5Q1724 965 1700 893L1810 841Q1831 885 1867.0 910.0Q1903 935 1947 935Q1979 935 1996.0 922.0Q2013 909 2013 886Q2013 874 2007.0 865.5Q2001 857 1989.0 850.0Q1977 843 1959 838L1866 812Q1799 793 1763.0 750.5Q1727 708 1727 650Q1727 599 1753.0 561.0Q1779 523 1826.0 501.5Q1873 480 1934 480Q2014 480 2074.5 517.5Q2135 555 2160 623L2049 675Q2037 641 2005.5 620.5Q1974 600 1934 600Q1905 600 1888.5 612.0Q1872 624 1872 645Q1872 656 1878.0 665.0Q1884 674 1897.5 681.0Q1911 688 1931 694L2018 720Q2086 740 2122.0 780.5Q2158 821 2158 880Q2158 931 2131.5 969.0Q2105 1007 2058.0 1028.5Q2011 1050 1947 1050Z M2511 1050Q2424 1050 2360.0 1011.5Q2296 973 2261.0 908.0Q2226 843 2226 764Q2226 682 2262.5 618.0Q2299 554 2361.0 517.0Q2423 480 2501 480Q2566 480 2616.0 500.5Q2666 521 2700.5 558.0Q2735 595 2753.0 643.5Q2771 692 2771 749Q2771 765 2769.5 780.5Q2768 796 2764 807H2355V697H2679L2608 749Q2618 706 2607.0 672.5Q2596 639 2568.5 619.5Q2541 600 2501 600Q2462 600 2434.0 619.0Q2406 638 2392.0 675.0Q2378 712 2381 765Q2377 811 2392.0 846.0Q2407 881 2438.0 900.5Q2469 920 2513 920Q2553 920 2581.5 904.0Q2610 888 2626 860L2746 917Q2730 957 2695.5 987.0Q2661 1017 2614.0 1033.5Q2567 1050 2511 1050Z M2859 1038V281H3009V1038Z M3119 1038V281H3269V1038Z M3650 1050Q3569 1050 3502.5 1013.0Q3436 976 3396.5 911.5Q3357 847 3357 765Q3357 682 3396.5 618.0Q3436 554 3502.5 517.0Q3569 480 3650 480Q3731 480 3797.0 517.0Q3863 554 3902.5 618.0Q3942 682 3942 765Q3942 847 3902.5 911.5Q3863 976 3797.0 1013.0Q3731 1050 3650 1050ZM3650 915Q3691 915 3721.5 896.0Q3752 877 3769.5 843.0Q3787 809 3787 765Q3787 721 3769.5 687.5Q3752 654 3721.5 634.5Q3691 615 3650 615Q3609 615 3578.0 634.5Q3547 654 3529.5 687.5Q3512 721 3512 765Q3512 809 3529.5 843.0Q3547 877 3578.0 896.0Q3609 915 3650 915Z M4298 1258Q4235 1258 4181.0 1237.0Q4127 1216 4088.5 1178.5Q4050 1141 4033 1090L4172 1041Q4183 1079 4217.0 1101.0Q4251 1123 4298 1123Q4335 1123 4362.0 1109.5Q4389 1096 4403.5 1070.0Q4418 1044 4418 1009V884L4447 920Q4419 966 4375.0 988.5Q4331 1011 4272 1011Q4196 1011 4136.0 976.5Q4076 942 4042.0 881.5Q4008 821 4008 744Q4008 667 4042.0 607.5Q4076 548 4135.0 514.0Q4194 480 4269 480Q4328 480 4372.0 503.5Q4416 527 4447 575L4428 611V492H4568V1009Q4568 1081 4533.0 1137.5Q4498 1194 4437.5 1226.0Q4377 1258 4298 1258ZM4293 875Q4331 875 4359.0 859.0Q4387 843 4402.5 814.0Q4418 785 4418 746Q4418 707 4402.0 677.5Q4386 648 4358.0 631.5Q4330 615 4293 615Q4255 615 4225.5 631.5Q4196 648 4179.5 677.5Q4163 707 4163 746Q4163 784 4179.5 813.0Q4196 842 4225.5 858.5Q4255 875 4293 875Z M4678 1038V492H4828V1038ZM4678 443V293H4828V443Z M5206 1050Q5124 1050 5058.5 1012.5Q4993 975 4954.5 910.0Q4916 845 4916 764Q4916 683 4954.0 618.5Q4992 554 5058.0 517.0Q5124 480 5206 480Q5267 480 5319.0 501.0Q5371 522 5408.0 559.5Q5445 597 5461 648L5331 704Q5317 663 5283.5 639.0Q5250 615 5206 615Q5167 615 5136.5 634.0Q5106 653 5088.5 687.0Q5071 721 5071 765Q5071 809 5088.5 843.0Q5106 877 5136.5 896.0Q5167 915 5206 915Q5251 915 5284.0 891.0Q5317 867 5331 826L5461 883Q5446 931 5409.0 969.0Q5372 1007 5320.0 1028.5Q5268 1050 5206 1050Z\"/></svg>";
+const ABOUT_MARK_SVG = "<svg aria-hidden=\"true\" focusable=\"false\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\" fill=\"none\"><rect width=\"100\" height=\"100\" fill=\"#5C3A56\"/><rect width=\"100\" height=\"100\" rx=\"22\" fill=\"#F7F2EC\"/><path d=\"M29.80,23.00 L54.00,23.00 A20.00,20.00 0 0 1 74.00,43.00 A20.00,20.00 0 0 1 54.00,63.00 L40.00,63.00 L40.00,71.20 A2.80,2.80 0 0 1 37.20,74.00 L29.80,74.00 A2.80,2.80 0 0 1 27.00,71.20 L27.00,25.80 A2.80,2.80 0 0 1 29.80,23.00 Z M53.20,31.00 L54.00,31.00 A12.00,12.00 0 0 1 66.00,43.00 L66.00,43.00 A12.00,12.00 0 0 1 54.00,55.00 L53.20,55.00 A12.00,12.00 0 0 1 41.20,43.00 L41.20,43.00 A12.00,12.00 0 0 1 53.20,31.00 Z\" fill=\"#5C3A56\" fill-rule=\"evenodd\"/></svg>";
+
+// ---- src/parent-gate.js ----
+// 1.0.5 About v2 (design/about-page-v2.md §4, Publisher review 2026-10-18): the reusable parent gate + the ONE
+// outbound-link helper. Android/Play childall (and web) gate ONLY mail (Contact us); a future iOS Kids build flips
+// GATE_RULES.web to true and every web link (the Privacy policy included) goes through the same gate.
+const GATE_COPY = {
+  title: 'Ask a grown-up',
+  bodyMail: 'This opens your email app, outside the game. To continue, a grown-up can answer:',
+  bodyWeb: 'This opens your browser, outside the game. To continue, a grown-up can answer:',
+  label: 'Answer',
+  cont: 'Continue',
+  cancel: 'Cancel',
+  wrong: 'Not quite. Try again.',
+};
+/** Per platform/build: which outbound kinds need the gate. Play childall + web: mail only. */
+// GATE_RULES.web is THE gate-every-link switch: set it to true and every web link (today only About's Privacy policy row;
+// NB-3 removed the play-strip / Levels-footer links) goes through openOutbound -> the parent gate with GATE_COPY.bodyWeb.
+// Off by Publisher decision (D-1: Privacy ungated); bodyWeb is unused until it is flipped. mail (Contact us) is always gated.
+const GATE_RULES = { mail: true, web: false };
+// Factors 12–29, never a multiple of 10 or 11 (so not 20, 22). Publisher C1.
+const GATE_FACTORS = [12, 13, 14, 15, 16, 17, 18, 19, 21, 23, 24, 25, 26, 27, 28, 29];
+const ONES = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+const TEENS = { 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen', 19: 'nineteen' };
+/** 1.0.5 r2 NB-2: each number word sits in a nowrap span so "twenty-nine" never breaks at its hyphen. Plain ASCII hyphen:
+ * Tiles Legible UI has no U+2011 glyph (it would fall back to another font). textContent stays q.words for TalkBack. */
+function pgSetQuestion(el, q, doc) {
+  el.textContent = '';
+  const nw = (t) => { const s = doc.createElement('span'); s.className = 'pg-nw'; s.textContent = t; return s; };
+  el.append('What is ', nw(q.parts[0]), ' times ', nw(q.parts[1]), '?');
+}
+/** 12–29 in US English words ("twenty-three"). */
+function gateNumberWords(n) {
+  if (TEENS[n]) return TEENS[n];
+  if (n >= 20 && n <= 29) return n === 20 ? 'twenty' : `twenty-${ONES[n - 20]}`;
+  throw new Error(`gateNumberWords: ${n} out of range`);
+}
+/** A new two-digit × two-digit question; never the same pair as `prev`. */
+function makeGateQuestion(rng = Math.random, prev = null) {
+  for (let i = 0; i < 50; i++) {
+    const a = GATE_FACTORS[Math.floor(rng() * GATE_FACTORS.length) % GATE_FACTORS.length];
+    const b = GATE_FACTORS[Math.floor(rng() * GATE_FACTORS.length) % GATE_FACTORS.length];
+    if (prev && ((prev.a === a && prev.b === b) || (prev.a === b && prev.b === a))) continue;
+    return { a, b, answer: a * b, words: `What is ${gateNumberWords(a)} times ${gateNumberWords(b)}?`, parts: [gateNumberWords(a), gateNumberWords(b)], digits: `${a} × ${b}` };
+  }
+  const a = prev && prev.a === 13 ? 14 : 13, b = 17; // rng stuck: still a different question
+  return { a, b, answer: a * b, words: `What is ${gateNumberWords(a)} times ${gateNumberWords(b)}?`, parts: [gateNumberWords(a), gateNumberWords(b)], digits: `${a} × ${b}` };
+}
+function gateAnswerReady(v) { return /^\s*[0-9]+\s*$/.test(String(v || '')); }
+
+/**
+ * Show the gate. onPass() runs ONLY on a correct answer, once (the pass is for that one tap). Wrong answer: error
+ * (role=alert), brand-new question, field cleared, focus kept. Unlimited tries, no lockout, no timer.
+ * Cancel / Esc / Android back (tlBack closes the top <dialog>): closed, focus back on returnFocusTo.
+ */
+function openParentGate({ doc = document, body = GATE_COPY.bodyMail, onPass = () => {}, returnFocusTo = null, rng = Math.random } = {}) {
+  const old = doc.getElementById('parent-gate'); if (old) old.remove();
+  const c = GATE_COPY;
+  const dlg = doc.createElement('dialog');
+  dlg.id = 'parent-gate'; dlg.className = 'parent-gate';
+  dlg.setAttribute('aria-modal', 'true'); dlg.setAttribute('aria-labelledby', 'pg-title'); dlg.setAttribute('aria-describedby', 'pg-body');
+  dlg.innerHTML = '<div class="pg-card">'
+    + `<h2 id="pg-title">${pgEsc(c.title)}</h2><p id="pg-body">${pgEsc(body)}</p>`
+    + '<p class="pg-q" id="pg-q"></p><p class="pg-qd" id="pg-qd" aria-hidden="true"></p>'
+    + `<label for="pg-answer">${pgEsc(c.label)}</label>`
+    + '<input id="pg-answer" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="pg-q pg-err">'
+    + '<p class="pg-err" id="pg-err" role="alert" aria-live="assertive"></p>'
+    + `<div class="pg-btns"><button class="pg-go" id="pg-continue" type="button" disabled>${pgEsc(c.cont)}</button>`
+    + `<button class="pg-cancel" id="pg-cancel" type="button">${pgEsc(c.cancel)}</button></div></div>`;
+  doc.body.appendChild(dlg);
+  const $ = (id) => dlg.querySelector('#' + id);
+  const input = $('pg-answer'), go = $('pg-continue');
+  let q = null, passed = false;
+  const ask = () => { q = makeGateQuestion(rng, q); pgSetQuestion($('pg-q'), q, doc); $('pg-qd').textContent = q.digits; input.value = ''; go.disabled = true; };
+  ask();
+  input.addEventListener('input', () => { go.disabled = !gateAnswerReady(input.value); });
+  const submit = () => {
+    if (!gateAnswerReady(input.value)) return;
+    if (parseInt(input.value.trim(), 10) === q.answer) { passed = true; dlg.close('pass'); return; }
+    $('pg-err').textContent = ''; // re-announce the same text on every wrong attempt
+    ask();
+    setTimeout(() => { $('pg-err').textContent = c.wrong; }, 30);
+    input.focus();
+  };
+  go.addEventListener('click', submit);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+  $('pg-cancel').addEventListener('click', () => dlg.close('cancel'));
+  dlg.addEventListener('close', () => {
+    dlg.remove();
+    if (returnFocusTo && returnFocusTo.isConnected) { try { returnFocusTo.focus({ preventScroll: true }); } catch { /* ignore */ } }
+    if (passed) onPass();
+  }, { once: true });
+  // Trap Tab inside the card (showModal already makes the rest inert; this keeps focus off the browser chrome).
+  dlg.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const f = [input, go, $('pg-cancel')].filter((x) => !x.disabled);
+    const i = f.indexOf(doc.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  });
+  if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+  input.focus();
+  return dlg;
+}
+/** Open a URL outside the app (Capacitor's WebView hands non-app URLs to Android via an intent). */
+function launchOutbound(url, doc = document) {
+  const a = doc.createElement('a');
+  a.href = url; a.id = 'outbound-launch';
+  if (!/^mailto:/i.test(url)) { a.target = '_blank'; a.rel = 'noopener'; }
+  a.hidden = true; doc.body.appendChild(a);
+  try { a.click(); } finally { a.remove(); }
+}
+/** The ONE helper every outbound opener goes through. kind: 'mail' | 'web'. Returns true if it opened at once. */
+function openOutbound(url, { kind = 'web', doc = document, returnFocusTo = null, rules = GATE_RULES, rng } = {}) {
+  if (!rules[kind]) { launchOutbound(url, doc); return true; }
+  openParentGate({ doc, body: kind === 'mail' ? GATE_COPY.bodyMail : GATE_COPY.bodyWeb, returnFocusTo, rng, onPass: () => launchOutbound(url, doc) });
+  return false;
+}
+function pgEsc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+
+// ---- src/about.js ----
+// 1.0.5 About v2 (design/about-page-v2.md, mockups design/about-v2/after*.png): full-screen About page content.
+// Copy is Brand Manager approved (§3); change it here only.
+const CONTACT_EMAIL = 'info@safa1.co.il';
+const ABOUT_COPY = {
+  title: 'About',
+  tagline: 'Three shapes. One beats the next.',
+  howTitle: 'How to play',
+  how: 'Tessellogic is a calm logic puzzle about shapes that beat each other in a cycle. Read the board, find the order, place every tile.',
+  beats: 'beats',
+  rules: ['Triangle beats circle, circle beats square, square beats triangle.', 'Neighboring cells never match.', 'A number counts how many neighbors its shape beats.'],
+  creditsTitle: 'About & credits',
+  credit: 'Made by Plumwit, the game studio of One Language (ONE LANGUAGE G.Y.E LTD), Tel Aviv, Israel.',
+  version: (v) => `Version ${v}`,
+  fontLicense: 'Font license',
+  privacyChoices: 'Privacy choices',
+  privacyPolicy: 'Privacy policy',
+  privacyPolicySub: 'Opens plumwit.com in your browser',
+  contact: 'Contact us',
+  footer: 'from Plumwit',
+};
+const AB_CHEV = '<svg class="ab-chev" aria-hidden="true" focusable="false" width="10" height="16" viewBox="0 0 10 16"><path d="M2 2l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const abChip = (k) => `<span class="ab-chip ab-chip-${k}" aria-hidden="true"><i></i></span>`;
+const abEsc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+/**
+ * The About body (inside #about-panel > .ab-wrap). privacyChoices: render the in-app "Privacy choices" row (native
+ * builds where analyticsPromptAllowed(); never childall, never web). policyUrl: the ONE privacy URL ('' = no row).
+ */
+function aboutBodyHtml({ appVersion, policyUrl, privacyChoices = false, privacyStatus = '' }) {
+  const c = ABOUT_COPY;
+  const rows = [];
+  if (privacyChoices) rows.push(`<button class="ab-row" id="privacy-choices" type="button"><span class="ab-row-text"><b>${abEsc(c.privacyChoices)}</b><small id="privacy-status">${abEsc(privacyStatus)}</small></span>${AB_CHEV}</button>`);
+  if (policyUrl) rows.push(`<a class="ab-row" id="privacy-policy-link" href="${abEsc(policyUrl)}" target="_blank" rel="noopener"><span class="ab-row-text"><b>${abEsc(c.privacyPolicy)}</b><small>${abEsc(c.privacyPolicySub)}</small></span>${AB_CHEV}</a>`);
+  rows.push(`<button class="ab-row" id="contact-us" type="button"><span class="ab-row-text"><b>${abEsc(c.contact)}</b><small>${abEsc(CONTACT_EMAIL)}</small></span>${AB_CHEV}</button>`);
+  return `<div class="ab-hero"><img class="ab-icon" src="${ABOUT_ICON_SRC}" alt="" width="84" height="84">`
+    + `<span class="ab-word" role="img" aria-label="Tessellogic">${ABOUT_WORDMARK_SVG}</span><p class="ab-tagline">${abEsc(c.tagline)}</p></div>`
+    + `<section class="ab-card" aria-labelledby="ab-how"><h3 id="ab-how">${abEsc(c.howTitle)}</h3><p>${abEsc(c.how)}</p>`
+    + `<div class="ab-legend" aria-hidden="true"><span class="ab-leg-seg">${abChip('t')}${abEsc(c.beats)}${abChip('c')}${abEsc(c.beats)}</span><span class="ab-leg-seg">${abChip('s')}${abEsc(c.beats)}${abChip('t')}</span></div>`
+    + `<ul class="ab-rules">${c.rules.map((r) => `<li>${abEsc(r)}</li>`).join('')}</ul></section>`
+    + `<section class="ab-card" aria-labelledby="ab-credits"><h3 id="ab-credits">${abEsc(c.creditsTitle)}</h3><p>${abEsc(c.credit)}</p>`
+    + `<p class="ab-ver"><span id="about-version">${abEsc(c.version(appVersion))}</span> · <button class="ab-license-link" id="about-license-open" type="button">${abEsc(c.fontLicense)}</button></p></section>`
+    + `<nav class="ab-card ab-links" id="about-links" aria-label="Links">${rows.join('')}</nav>`
+    + `<footer class="ab-foot"><span class="ab-mark">${ABOUT_MARK_SVG}</span><span>${abEsc(c.footer)}</span></footer>`;
 }
 
 // ---- src/ui.js ----
@@ -6230,7 +6967,6 @@ function snapshotLayoutHeight() {
  * reflow cellPx. Recompute only on level change, real width change, or orientation change.
  */
 function sizeBoard(force = false) {
-  if (NATIVE_BUILD) requestAnimationFrame(fitStrip);
   // r23 §3: the board is sized from the height left over by the fixed rows, not from the width:
   // cell = floor(min((col - frame) / cols, (slotH - frame) / rows)). The slot (.board-wrap) is the flex:1 row,
   // so its height does not depend on the board. Computed once per level, width change or orientation change
@@ -6290,6 +7026,8 @@ function applyCell(cell) {
 // under the board; saved on the device).
 function tap(i) {
   if (st.won || st.readOnly || st.givenSet.has(i)) return;
+  if (st.boardTapGuardUntil && performance.now() < st.boardTapGuardUntil) { st.boardTapsIgnored = (st.boardTapsIgnored || 0) + 1; return; } // 1.0.6 r2
+
   st.handAct = true;
   if (st.mode === 'tutorial' && !tutorialAllows(i)) return;
   // Cancel pending idle delay but keep coach sticky (r15 UX §5: do not clear on cell tap).
@@ -7086,6 +7824,7 @@ function replayLevel() {
   showView('levels', 'replay');
   const t = document.querySelector('#levels-page .lp-level.is-current, #levels-page .lp-level:not([disabled])');
   t?.focus?.();
+  guardLevelsInput(); // r6 NB-r5-1: the 2nd tap of a double tap on "Replay a level" must not start the tile under the finger
 }
 
 function clearWinFx() {
@@ -7591,6 +8330,9 @@ function noteClearForAds(lvl, wasSolved) {
   const cap = writeAdCap(window.localStorage, capAfterClear(readAdCap(window.localStorage)));
   st.adDue = capDue(cap, adNow(), st.chapterMoment);
   st.adLog.push({ ev: 'clear', level: lvl.id, n: cap.n, sinceLastMs: adNow() - cap.last, moment: st.chapterMoment, due: st.adDue });
+  // 1.0.6: preload the interstitial one eligible clear before the cap gate opens (and while it is open), so it is
+  // ready when the gate opens. Gating itself (capDue / interstitialAllowed / chapter moments) is unchanged.
+  if (NATIVE_BUILD && !umpAdsOff() && (st.adDue || cap.n >= AD_CAP.everyClears - 1) && preloadInterstitial('due_soon')) st.adLog.push({ ev: 'interstitial_preload', level: lvl.id, n: cap.n });
 }
 function isLastOfUnfinishedPack(lvl) {
   const main = mainIdx();
@@ -7609,7 +8351,15 @@ function syncAdPending() {
   if (h) { h.classList.toggle('is-ad-pending', busy); if (busy) h.setAttribute('aria-busy', 'true'); else h.removeAttribute('aria-busy'); }
   const p = $('hint-plus'); if (p) p.disabled = busy;
 }
-function syncAdHint() { syncAdPending(); refreshHintBadge(); }
+function syncAdHint() { syncAdPending(); refreshHintBadge(); maybePreloadRewarded(); }
+// 1.0.6: preload the rewarded ad once ads are initialised (UMP allows them). Idempotent: src/ads.js preloadAd ignores it while one is ready / loading / retrying.
+function maybePreloadRewarded() {
+  // 1.0.6 r2 (Chief): as early as possible: right after ads init (UMP allowed ads), NOT gated on the hint unlock or the
+  // level (src/ads.js initAds starts it; this keeps it going after a UMP flip or a failed show). Nothing is ever SHOWN
+  // before the existing gates (L8+, Yes).
+  if (!NATIVE_BUILD || !nativeAdsAvailable() || umpAdsOff() || !adsState().ready) return;
+  if (preloadRewarded('hint_unlocked') && !st.rewardedPreloadLogged) { st.rewardedPreloadLogged = true; st.adLog.push({ ev: 'rewarded_preload', level: st.level?.id }); }
+}
 // 1.0.3 (spec §3, Chief 2/3): the counter sits top right of Hint: the balance (any number), or a play icon at 0.
 // L1-L7 / tutorial: none. No Plus / no infinity sign. A "+" (own 44px target) beside Hint opens the bank sheet;
 // below 340px wide there is no "+", and a tap on the counter opens the bank sheet instead.
@@ -7624,9 +8374,9 @@ function refreshHintBadge() {
   h.classList.toggle('is-hint-shown', shown);
   if (shown) h.setAttribute('aria-label', 'Hint shown');
   else if (!on) h.setAttribute('aria-label', 'Hint');
-  else h.setAttribute('aria-label', n >= 1 ? `Hint, ${n} ${n === 1 ? 'hint' : 'hints'}` : (NATIVE_BUILD ? 'Hint, watch an ad for a hint' : 'Hint'));
+  else h.setAttribute('aria-label', n >= 1 ? `Hint, ${n} ${n === 1 ? 'hint' : 'hints'}` : (NATIVE_BUILD && !umpAdsOff() ? 'Hint, watch an ad for a hint' : 'Hint'));
   const narrow = narrowTools();
-  const adUi = NATIVE_BUILD; // B1: the web build has no ads: no play badge, no ad label, no '+', counter never a button
+  const adUi = NATIVE_BUILD && !umpAdsOff(); // B1: the web build has no ads: no play badge, no ad label, no '+', counter never a button. 1.0.4 NB-1: same while UMP has ads off
   const tapBadge = on && narrow && adUi;
   if (b) {
     b.hidden = !on || (!adUi && n < 1);
@@ -7659,12 +8409,21 @@ function hideAdTip() {
   const t = $('ad-hint-tip'); if (t) t.hidden = true; clearTimeout(st.adTipTimer);
   document.removeEventListener('pointerdown', onTapWhileAdTip, true);
 }
-const AD_LOAD_FAILS = new Set(['failed_to_load', 'load_timeout', 'load_rejected', 'unavailable']);
+const AD_LOAD_FAILS = new Set(['failed_to_load', 'load_timeout', 'load_rejected', 'unavailable', 'ump_disabled']); // 1.0.4: an ad cancelled because UMP turned ads off = no-fill
 // 1.0.3 (spec §4, Chief 4/6, Q10/Q11): every ad starts only from an explicit Yes on the ad sheet. via 'hint' (a Hint
 // tap at 0: the +1 is used straight away as that tap's hint) or 'badge' (the counter / "+": the +1 is banked).
 // A full ad: +1. Closed early: nothing. No ad within ~5 s (load fail / timeout): +1 anyway, max 3 a day, then
 // "No ad right now. Try again in a bit." No cap, no cooldown; Hint taps are ignored while busy and ~1 s after.
 const AD_NO_FILL_MSG = 'No ad right now. Try again in a bit.';
+// 1.0.6 r2: the ad was ready but did not play (failed_to_show / show_rejected) -> the no-fill fallback (above)
+const AD_SHOW_FAILS = new Set(['failed_to_show', 'show_rejected']);
+/** 1.0.4 NB-1: native build and UMP has answered/failed without allowing ads (false before UMP ran). */
+function umpAdsOff() { return NATIVE_BUILD && nativeAdsAvailable() && adsBlockedByUmp() === true; }
+/** 1.0.4 B1: UMP just turned ads off mid-session: an open ad prompt closes, the badge / '+' lose their ad look. */
+function onUmpAdsOff() {
+  if (st.sheet && st.sheet.kind === 'ad') closeHintChooser();
+  syncAdHint();
+}
 const AD_AFTER_CLOSE_MS = 1000;
 function earnHint(reason, via, rec = null) {
   hintStore.save(rec || hbEarn(hintStore.get()));
@@ -7678,22 +8437,74 @@ function afterEarn(via, msg) {
   }
   setHintText(msg);
 }
+// 1.0.6 r2 (Chief): the app was killed after a rewarded ad's reward event but before its Dismissed: the pending reward is
+// applied once at the next start (+1 in the balance, the same one-write apply as on Dismissed; a second start finds none).
+function restorePendingAdReward() {
+  const pend = hbApplyPendingAd(hintStore.get());
+  if (!pend.n) return 0;
+  earnHint('ad', 'restore', pend.rec);
+  trackEvent('rewarded_complete', { via: 'restore' });
+  (st.adLog = st.adLog || []).push({ ev: 'rewarded_restored', n: pend.n });
+  try { console.info('[TL-AD] rewarded_restored ' + JSON.stringify({ n: pend.n, balance: hintBalance() })); } catch (e) { /* diag only */ } // @ad-diag
+  st.restoredAdHints = pend.n;
+  return pend.n;
+}
 function rewardedHint({ via = 'hint' } = {}) {
   if (st.adBusy) return;
   st.adBusy = true; syncAdHint();
   trackEvent('rewarded_accept', { via });
   let ok = false;
   const gen = st.navGen || 0, current = () => (st.navGen || 0) === gen;
-  showRewardedHintAd({ shouldShow: current }).then((r) => { ok = !!r; }, () => { ok = false; }).finally(() => {
-    st.adBusy = false; st.adClosedAt = performance.now();
+  // 1.0.6 r2: the reward event only stores a pending reward (invisible); it is applied below, once the ad is dismissed
+  const onReward = () => { hintStore.save(hbAddPendingAd(hintStore.get())); st.adLog.push({ ev: 'rewarded_pending', level: st.level?.id }); };
+  showRewardedHintAd({ shouldShow: current, onWait: setAdWaiting, onReward }).then((r) => { ok = !!r; }, () => { ok = false; }).finally(() => {
+    st.adBusy = false; st.adClosedAt = performance.now(); guardBoardTaps('ad_settled');
     const out = lastAdOutcome().rewarded;
     st.adLog.push({ ev: 'rewarded', level: st.level?.id, rewarded: ok, outcome: out, at: adNow(), stale: !current(), via });
+    try { console.info('[TL-AD] hint_fallback ' + JSON.stringify({ outcome: out, rewarded: ok, via, path: ok ? 'ad_reward' : out === 'user_cancel' ? 'cancelled_no_hint' : out === 'backgrounded' ? 'backgrounded_no_hint' : AD_SHOW_FAILS.has(out) ? (hbShowFailLeft(hintStore.get(), localDateKey()) > 0 ? 'show_fail_free' : hbNoFillLeft(hintStore.get(), localDateKey()) > 0 ? 'show_fail_capped' : 'show_fail_capped_exhausted') : out === 'ump_disabled' ? 'ads_off_free' : AD_LOAD_FAILS.has(out) ? (hbNoFillLeft(hintStore.get(), localDateKey()) > 0 ? 'no_fill_free' : 'no_fill_exhausted') : 'none' })); } catch (e) { /* diag only */ } // @ad-diag
     closeHintChooser();
+    // 1.0.6 r2: apply the pending reward (balance +1 and the pending flag cleared in ONE record write). A reward whose
+    // pending write failed still counts once (ok); a pending reward always counts, whatever the outcome says.
+    const pend = hbApplyPendingAd(hintStore.get());
+    if (pend.n > 0) ok = true;
     if (ok) {
       st.adHints = (st.adHints || 0) + 1; st.skipNextInterstitial = true; // no interstitial right after a rewarded ad
       trackEvent('rewarded_complete', { via });
-      earnHint('ad', via);
+      earnHint('ad', via, pend.n > 0 ? pend.rec : null);
+      st.adLog.push({ ev: 'rewarded_granted', level: st.level?.id, fromPending: pend.n });
       if (current()) afterEarn(via, '+1 hint'); else setHintText('+1 hint');
+    } else if (out === 'user_cancel') {
+      // 1.0.6: Cancel on "Loading ad..." = the player chose not to wait. Like closing the ad early (spec §4): no hint and
+      // no daily no-fill slot used. The ad keeps loading and is ready for the next Yes.
+      trackEvent('rewarded_fail', { reason: 'cancelled_wait', outcome: out, via });
+    } else if (out === 'backgrounded') {
+      // 1.0.6 r2 (Chief): the app went to the background during the wait: no ad, no hint, no slot; the ad is kept and a
+      // fresh Yes on return shows it.
+      trackEvent('rewarded_fail', { reason: 'backgrounded', outcome: out, via });
+    } else if (AD_SHOW_FAILS.has(out)) {
+      // 1.0.6 r2.1 (Chief): the child chose to watch and the show failed on our side (stale, backgrounded, SDK error):
+      // ALWAYS +1, even at / above the 3-a-day no-fill cap, with a short message. Path 'show_fail_free'. It does NOT use
+      // or count toward the no-fill slots (noFillCount unchanged), so it never blocks a later no-fill / timeout grant;
+      // no-fill and timeouts keep their cap.
+      // r2.2 (Chief): silent soft limit of HB_SHOW_FAIL_FREE_PER_DAY (10) such grants a local day; after it a failed show
+      // takes the normal capped no-fill path ('show_fail_capped': uses a daily slot, "No ad right now" at the cap).
+      const sf = hbUseShowFail(hintStore.get(), localDateKey());
+      if (sf.ok) {
+        trackEvent('rewarded_fail', { reason: 'show_failed', path: 'show_fail_free', outcome: out, via });
+        earnHint('show_fail_free', via, sf.rec);
+        if (current()) afterEarn(via, AD_COPY.showFailed); else setHintText(AD_COPY.showFailed);
+      } else {
+        trackEvent('rewarded_fail', { reason: 'show_failed', path: 'show_fail_capped', outcome: out, via });
+        if (hbNoFillLeft(hintStore.get(), localDateKey()) > 0) {
+          earnHint('show_fail_capped', via, hbUseNoFill(hintStore.get(), localDateKey()).rec);
+          if (current()) afterEarn(via, '+1 hint'); else setHintText('+1 hint');
+        } else if (current() && st.view === 'play') setHintText(AD_NO_FILL_MSG);
+      }
+    } else if (out === 'ump_disabled') {
+      // 1.0.5 NB-5 (QA): UMP turned ads off while the rewarded ad was loading. Not a no-fill: the child who said Yes
+      // gets the hint free (Chief's NB-1 ads-off rule, as on web) and no daily no-fill slot is used.
+      trackEvent('rewarded_fail', { reason: 'ads_off', outcome: out, via });
+      if (!(via === 'hint' && current() && st.view === 'play' && applyOneHint('ads_off_free'))) { earnHint('ads_off_free', via); if (current() && st.view === 'play') setHintText('+1 hint'); }
     } else if (AD_LOAD_FAILS.has(out)) {
       trackEvent('rewarded_fail', { reason: 'no_fill', outcome: out, via });
       if (hbNoFillLeft(hintStore.get(), localDateKey()) > 0) {
@@ -7707,13 +8518,14 @@ function rewardedHint({ via = 'hint' } = {}) {
 const AD_HINT_LABEL = AD_COPY.label; // rc5: copy lives in src/consent-copy.js
 // Placeholder icon (play button + spark) for Artist to replace.
 const AD_HINT_ICON = '<svg viewBox="0 0 24 24" width="100%" height="100%" focusable="false"><rect x="2.5" y="4.5" width="15" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 7.6v5.3l4.4-2.65z" fill="currentColor"/><path d="M19.5 13.5v6M16.5 16.5h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+// 1.0.4: local-only UMP events (ump_error / ads_disabled; no PII), into the local tracker like every other event.
+function emitUmpEvents() { for (const [name, props] of takeUmpEvents()) trackEvent(name, { ...props, build: BUILD_MODE }); }
 async function initNative() {
   if (!NATIVE_BUILD) return;
   st.adLog = st.adLog || [];
   // 1.0.3: no btn-ad-hint (the ad offer lives on the Hint counter / '+' and the ad sheet).
   addPrivacySection();
-  addFooterPolicyLink();
-  addStripPolicyLink();
+  // 1.0.5 r2 (NB-3, Chief): no privacy link on the play strip or the Levels footer; Privacy is reachable only via About (row ungated, D-1).
   // rc4 (B2 prep): audience FIRST. The neutral age screen (AGE_GATE, first launch only) comes before Google UMP
   // and before any ad request; CHILD_DIRECTED_ALL skips it and treats everyone as under 13.
   const aud = resolveAudience({ ageGate: AGE_GATE, childAll: CHILD_DIRECTED_ALL, storage: window.localStorage });
@@ -7753,47 +8565,34 @@ async function initNative() {
     else st.adLog.push({ ev: 'firebase_skipped', bucket: st.audience.bucket, reason: 'eea_under_16' });
     syncPrivacyStatus();
   }
+  emitUmpEvents();
   const ready = await initAds();
   st.adLog.push({ ev: 'ads_init', ready });
   syncAdHint();
+  // 1.0.6 r2 (Chief): the app went to the background during "Loading ad...": end the wait now, no ad and no hint (the
+  // loaded ad is kept; the child taps Yes again on return). Only while WAITING: during a show the ad's own Activity hides
+  // the WebView, which is expected. src/ads.js also never calls show() while the document is hidden.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') adsResumed(); // r2.2: reload a rewarded ad held after a backstop (once)
+    if (document.visibilityState === 'hidden' && st.adWaiting) { st.adLog.push({ ev: 'rewarded_wait_backgrounded', level: st.level?.id }); cancelRewardedWait('backgrounded'); }
+  });
+  // 1.0.6 r2: board taps are ignored for BOARD_TAP_GUARD_MS after a full-screen ad closes (as after a sheet closes)
+  setAdClosedHook(() => guardBoardTaps('ad_closed'));
+  // 1.0.4: after a UMP failure, retry on resume (1 / 5 / 30 min backoff, max 3 a session; see umpRetryOnResume).
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    umpRetryOnResume().then((r) => {
+      if (!r) return;
+      st.adLog.push({ ev: 'ump', status: r.status || r.error || null, eea: r.eea, tfua: !!currentAudience().tfua, phase: 'resume_retry' });
+      emitUmpEvents();
+      st.adLog.push({ ev: 'ads_init', ready: adsState().ready, phase: 'resume_retry' });
+      if (umpAdsOff()) onUmpAdsOff(); else syncAdHint();
+    }).catch(() => {});
+  });
   // A returning player who already cleared L1 but never answered gets our prompt now.
   if (st.mode !== 'tutorial') maybeAskAnalytics();
 }
 // rc2: our Firebase prompt, once, after Level 1 is cleared (never at first launch).
-/** C5: clearly labelled "Privacy policy" link right after About in the play footer. The play screen IS the landing
- * screen (there is no separate title screen). Both app builds (childall + agegate). Same .linkbtn look as About.
- * PRIVACY_POLICY_URL (src/consent-copy.js) is overridden at build time (scripts/bundle.js --privacy-url). */
-function addFooterPolicyLink() {
-  const about = $('about-open');
-  if (!about || $('footer-privacy-link')) return;
-  const html = policyLinkHtml('footer-privacy-link');
-  if (!html) return;
-  about.insertAdjacentHTML('afterend', html);
-  $('footer-privacy-link').classList.add('linkbtn', 'footer-policy');
-}
-// r23 §5 (Game Designer): the play screen keeps one visible Privacy link, at the right edge of the rule strip,
-// with a 44px target, at every size (no overflow menu). It replaces the r22 title-row / mode-row link.
-function addStripPolicyLink() {
-  const strip = $('rule-strip');
-  if (!strip || $('strip-privacy-link') || !PRIVACY_POLICY_URL) return;
-  const a = document.createElement('a');
-  a.id = 'strip-privacy-link'; a.className = 'linkbtn strip-privacy';
-  a.href = PRIVACY_POLICY_URL; a.target = '_blank'; a.rel = 'noopener';
-  a.textContent = CONSENT_COPY.headerPolicyLink;
-  strip.appendChild(a);
-  fitStrip();
-  window.addEventListener('resize', fitStrip);
-}
-// r23: with the Privacy link the rule strip is narrower; scale the legend so the whole cycle (ending on the first
-// shape again) always fits, never truncated. Only ever shrinks (floor 0.7); the 44px link target is untouched.
-function fitStrip() {
-  const lg = $('legend'); if (!lg || !$('strip-privacy-link')) return;
-  lg.style.zoom = '';
-  const kids = [...lg.children].filter((e) => e.getClientRects().length); if (!kids.length) return;
-  const cs = getComputedStyle(lg), avail = lg.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const span = kids.at(-1).getBoundingClientRect().right - kids[0].getBoundingClientRect().left;
-  if (avail > 0 && span > avail + 0.5) lg.style.zoom = String(Math.max(0.7, Math.floor((avail / span) * 1000) / 1000));
-}
 function analyticsPromptAllowed() { return !!(st.audience && st.audience.analyticsAllowed); } // rc4: never for under 13
 async function maybeAskAnalytics(force = false) {
   if (!NATIVE_BUILD || st.consentOpen || !analyticsPromptAllowed()) return false;
@@ -7807,19 +8606,20 @@ async function maybeAskAnalytics(force = false) {
   syncPrivacyStatus();
   return true;
 }
-// rc2: About › Privacy (native only): status line, "Privacy choices" (our prompt + UMP options form), policy link.
-function addPrivacySection() {
-  const panel = $('about-panel'); if (!panel || $('about-privacy')) return;
-  const c = CONSENT_COPY;
-  const sec = document.createElement('section');
-  sec.id = 'about-privacy'; sec.className = 'about-privacy';
-  // rc6: the CHILD_DIRECTED_ALL build contains no analytics at all, so it gets no "Usage stats & crash reports" status
-  // line and no Privacy choices button (nothing to choose); only the privacy policy link.
-  sec.innerHTML = CHILD_DIRECTED_ALL ? `<h3>${c.privacyHeading}</h3><p class="privacy-row">${policyLinkHtml('privacy-policy-link')}</p>`
-    : `<h3>${c.privacyHeading}</h3><p id="privacy-status"></p>`
-    + `<p class="privacy-row"><button class="linkbtn" id="privacy-choices" type="button">${c.privacyChoices}</button> ${policyLinkHtml('privacy-policy-link')}</p>`;
-  panel.insertBefore(sec, $('about-build').nextSibling);
+// 1.0.5 About v2 (design/about-page-v2.md): the full-screen About body. Links card: Privacy choices (native builds that
+// allow analytics only; never childall/web; its status is the row's second line), Privacy policy (NOT gated), Contact us
+// (mailto, ALWAYS behind the parent gate). Every outbound opener goes through openOutbound (src/parent-gate.js).
+function addPrivacySection() { renderAboutBody(); }
+function renderAboutBody() {
+  const body = $('about-body'); if (!body) return;
+  const choices = NATIVE_BUILD && !CHILD_DIRECTED_ALL;
+  body.innerHTML = aboutBodyHtml({ appVersion: APP_VERSION, policyUrl: PRIVACY_POLICY_URL, privacyChoices: choices });
   if ($('privacy-choices')) $('privacy-choices').addEventListener('click', openPrivacyChoices);
+  const pol = $('privacy-policy-link');
+  if (pol) pol.addEventListener('click', (e) => { if (!GATE_RULES.web) return; e.preventDefault(); openOutbound(pol.href, { kind: 'web', returnFocusTo: pol }); });
+  const contact = $('contact-us');
+  contact.addEventListener('click', () => { st.adLog && st.adLog.push({ ev: 'contact_tap' }); openOutbound(`mailto:${CONTACT_EMAIL}`, { kind: 'mail', returnFocusTo: contact }); });
+  $('about-license-open').addEventListener('click', () => $('about-license-sheet').showModal());
   syncPrivacyStatus();
 }
 function syncPrivacyStatus() {
@@ -7835,7 +8635,8 @@ async function openPrivacyChoices() {
   await maybeAskAnalytics(true);
   const shown = await showUmpPrivacyOptions();
   st.adLog.push({ ev: 'ump_privacy_options', shown });
-  syncAdHint();
+  emitUmpEvents();
+  if (umpAdsOff()) onUmpAdsOff(); else syncAdHint(); // 1.0.4 B1: consent turned false -> ads stop at once
 }
 function winNextNow() {
   st.lastNextTapAt = performance.now();
@@ -7859,13 +8660,16 @@ function cardAction(label, fn) {
   $('win').classList.add('rating', 'rating-after');
   st.rateShownAt = performance.now();
   refresh();
-  $('fun-row').querySelector('button')?.focus();
+  focusWinCard(); // r6 (Chief, B-r5-1): never auto-focus the next step's button; the card container takes focus
 }
 function finishRating() {
   $('win').classList.remove('rating', 'rating-after');
   const a = st.afterRating; st.afterRating = null;
-  if (a) { a.fn(); refresh(); } else $('win-next').focus();
+  if (a) { a.fn(); refresh(); } else focusWinCard();
 }
+// r6 (Chief ruling on B-r5-1): on a step change focus stays on the win card container (tabindex=-1, labelled by the
+// title), so a held / repeated Enter can't land on the next step's primary button.
+function focusWinCard() { const c = $('win-card'); if (c && !$('win').hidden) c.focus({ preventScroll: true }); }
 
 // ---------------------------------------------------------------- chrome
 // ---------------------------------------------------------------- r14 v1 polish (place / beat flash / win)
@@ -8054,6 +8858,12 @@ function outOfHints(via) {
     if (via === 'hint') applyOneHint('web_free');
     return;
   }
+  // 1.0.4 NB-1 (Chief): UMP has ads off (EEA/UK/CH or unknown region after a UMP failure, or consent false): no ad
+  // prompt and no ad look; like the web build, a Hint tap at 0 simply gives the hint free (the badge / '+' are hidden).
+  if (umpAdsOff()) {
+    if (via === 'hint') applyOneHint('ads_off_free');
+    return;
+  }
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     const today = localDateKey();
     if (hbOfflineLeft(hintStore.get(), today) > 0) {
@@ -8210,7 +9020,16 @@ function openHintChooser() {
   setChooserChrome(true); c_disable(false); placeHintChooser();
   bumpNav('hint_chooser');
 }
-function closeHintChooser() {
+function closeHintChooser({ user = false, e = null } = {}) {
+  // 1.0.6: the player closing the sheet (X / scrim / Esc / Back) while "Loading ad..." = Cancel. A navigation closes it
+  // too, but its bumpNav cancels the wait as a navigation ('cancelled_<reason>'), as before.
+  // r2 (QA B-106-1 / NB-106-1): the same AD_CANCEL_GUARD_MS fresh-press guard as Cancel: inside it the press is ignored.
+  if (user && st.adWaiting) {
+    if (!adCancelPressOk(e)) { st.adLog.push({ ev: 'rewarded_wait_cancel_ignored', level: st.level?.id }); return false; }
+    cancelRewardedWait();
+  }
+  if (st.hintChooserOpen) guardBoardTaps('sheet_closed');
+  setAdWaiting(false);
   const c = $('hint-chooser'); if (c) c.hidden = true;
   const sc = $('hint-chooser-scrim'); if (sc) sc.hidden = true;
   const m = $('hint-chooser-msg'); if (m) { m.hidden = true; m.textContent = ''; } // r23.2 N4
@@ -8219,8 +9038,57 @@ function closeHintChooser() {
   st.sheet = null; c_disable(false); setChooserChrome(false);
   if (wasOpen && $('hint-chooser')?.contains(document.activeElement)) $('hint')?.focus?.({ preventScroll: true });
 }
+// 1.0.6: "Loading ad..." state of the ad sheet (no preloaded ad yet): spinner + message, Yes / No hidden, one Cancel.
+// Cancel counts only for a press that started AD_CANCEL_GUARD_MS after the wait began (a doubled Yes tap never cancels).
+// r2 (QA B-106-1, Chief): 2000 ms (r1 500 ms: a second Yes tap at 550-2000 ms cancelled), the same guard on X / scrim /
+// Esc / Back, and Cancel sits in the card under the message, never on the Yes spot (the Yes/No band stays an inert,
+// empty tap sink while waiting). After AD_ALMOST_MS the text becomes AD_COPY.almost.
+const AD_CANCEL_GUARD_MS = 2000;
+const AD_ALMOST_MS = 5000;
+// a press counts only if it STARTED (pointerdown) at least AD_CANCEL_GUARD_MS after the wait began; keys / Back: time only
+function adCancelPressOk(e) {
+  const now = performance.now(), at = st.adWaitAt || 0;
+  if (now - at < AD_CANCEL_GUARD_MS) return false;
+  const ptr = e && e.type === 'click' && e.detail !== 0;
+  return !ptr || (st.lastPointerDownAt || 0) - at >= AD_CANCEL_GUARD_MS;
+}
+// 1.0.6 r2 (Chief / QA NB-106-6): board cell taps are ignored for BOARD_TAP_GUARD_MS after ANY ad sheet closes or a
+// full-screen ad goes away, so the tap that closed it (or a doubled one) never selects a cell. Chief said 300 ms; QA saw
+// a cell selected up to 600 ms after a scrim close, so 700 ms.
+const BOARD_TAP_GUARD_MS = 700;
+function guardBoardTaps(why) { st.boardTapGuardUntil = performance.now() + BOARD_TAP_GUARD_MS; st.boardTapGuardWhy = why; }
+function setAdWaiting(on) {
+  on = !!on;
+  const was = !!st.adWaiting; st.adWaiting = on;
+  const c = $('hint-chooser'), m = $('hint-chooser-msg'), cb = $('hint-ad-cancel'), yes = $('hint-ad-yes'), no = $('hint-ad-no');
+  if (c) c.classList.toggle('is-ad-waiting', on);
+  if (on) {
+    st.adWaitAt = performance.now(); st.adCancelDownAt = 0;
+    if (m) { m.innerHTML = `<span class="ad-wait-spin" aria-hidden="true"></span><span class="ad-wait-text">${escHtml(AD_COPY.loading)}</span>`; m.hidden = false; }
+    clearTimeout(st.adAlmostTimer);
+    st.adAlmostTimer = setTimeout(() => { const t = st.adWaiting && $('hint-chooser-msg')?.querySelector('.ad-wait-text'); if (t) { t.textContent = AD_COPY.almost; st.adLog.push({ ev: 'rewarded_wait_almost', level: st.level?.id }); } }, AD_ALMOST_MS);
+    if (yes) yes.hidden = true; if (no) no.hidden = true;
+    if (cb) { cb.textContent = AD_COPY.cancel; cb.hidden = false; cb.disabled = false; }
+    if (st.hintChooserOpen) { placeHintChooser(); cb?.focus?.({ preventScroll: true }); }
+    st.adLog.push({ ev: 'rewarded_wait', level: st.level?.id });
+  } else {
+    clearTimeout(st.adAlmostTimer);
+    if (cb) cb.hidden = true;
+    if (yes) yes.hidden = false; if (no) no.hidden = false;
+    if (was && m && m.querySelector('.ad-wait-spin')) { m.hidden = true; m.textContent = ''; }
+  }
+}
+function onAdWaitCancel(e) {
+  if (!st.adWaiting) return;
+  const at = st.adWaitAt || 0;
+  const okPress = performance.now() - at >= AD_CANCEL_GUARD_MS && (e.detail === 0 || (st.adCancelDownAt || 0) - at >= AD_CANCEL_GUARD_MS);
+  st.adCancelDownAt = 0;
+  if (!okPress) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+  st.adLog.push({ ev: 'rewarded_wait_cancel', level: st.level?.id });
+  cancelRewardedWait();
+}
 // 1.0.2 (4): scrim tap closes; its click is swallowed so it never lands on the board, picker or a tool.
-function onChooserScrim(e) { e.preventDefault(); e.stopPropagation(); closeHintChooser(); }
+function onChooserScrim(e) { e.preventDefault(); e.stopPropagation(); closeHintChooser({ user: true, e }); }
 
 // ---------------------------------------------------------------- r23 §4 Levels page + play route
 // Two views: 'levels' (home: Continue, today's Daily + Archive, Random, chapters with stars, footer) and 'play'
@@ -8353,7 +9221,7 @@ function tlBack() {
   const now = performance.now();
   if (now - lastBackAt < BACK_DEBOUNCE_MS) return true;
   lastBackAt = now;
-  if (st.hintChooserOpen) { closeHintChooser(); return true; }
+  if (st.hintChooserOpen) { closeHintChooser({ user: true }); return true; } // r2: inside the wait guard Back is consumed, nothing closes
   if ($('ad-hint-tip') && !$('ad-hint-tip').hidden) { $('ad-hint-tip').hidden = true; return true; }
   // 1.0.2 QA wip-c (agegate build): the age gate / consent sheet are mandatory first-run steps (div role=dialog, not
   // <dialog>): Back stays on them (handled, nothing to close) instead of answering "false" and exiting the app.
@@ -8393,7 +9261,7 @@ function initLevelsPage() {
     }, true); }
   $('hint-ad-yes')?.addEventListener('click', onSheetYes);
   $('hint-ad-no')?.addEventListener('click', onSheetNo);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && st.hintChooserOpen) { e.preventDefault(); closeHintChooser(); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && st.hintChooserOpen) { e.preventDefault(); closeHintChooser({ user: true }); } });
 }
 
 // ---------------------------------------------------------------- r23 §2 tutorial hand
@@ -9043,8 +9911,10 @@ function initPlaytest() {
   $('setting-askhint')?.addEventListener('change', (e) => { hintStore.save(hbSetAskAgain(hintStore.get(), !!e.target.checked)); trackEvent('hint_ask_setting', { on: !!e.target.checked }); });
   $('setting-hand')?.addEventListener('change', (e) => setHandOff(!e.target.checked));
   $('settings-close')?.addEventListener('click', () => $('settings-panel').close());
-  $('about-open').addEventListener('click', () => { $('about-build').textContent = `${GAME_NAME}${GAME_NAME_PENDING ? ' (working title)' : ''} · build ${BUILD_VERSION}${NATIVE_BUILD ? ` · ${BUILD_MODE}` : ''}`; $('about-panel').showModal(); }); // rc6: app builds show childall / agegate
+  if (!$('about-links')) renderAboutBody(); // web: rendered here; native: initNative renders it (privacy rows)
+  $('about-open').addEventListener('click', () => { syncPrivacyStatus(); $('about-panel').showModal(); $('about-panel').scrollTop = 0; $('about-close').focus({ preventScroll: true }); });
   $('about-close').addEventListener('click', () => $('about-panel').close());
+  $('about-license-close').addEventListener('click', () => $('about-license-sheet').close());
   const endRating = () => finishRating();
   $('fun-row').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
     const lvl = st.level;
@@ -9139,6 +10009,91 @@ function appReadyHandoff() {
     st.appReadyAt = performance.now();
   });
 }
+// 1.0.5 r4 (QA B-1): a habitual double tap on the winning picker shape must not fall through to the win card's buttons
+// (Next / Share sit over the picker band since r3). The win layer ignores pointer presses for WIN_INPUT_GUARD_MS after
+// it is shown, and a click counts only if its press STARTED on the shown card after that guard. Keyboard / programmatic
+// activation (click with detail 0, no pointer press) is deliberate and always allowed.
+const WIN_INPUT_GUARD_MS = 700;
+// r5 (QA NB-r4-1): the one-row Next / Home / Share must never truncate (130% text). Step 1: drop "Back to " visually
+// (textContent and the accessible name stay "Back to daily"); step 2: a smaller label size. Buttons stay 44px.
+function fitWinRow() {
+  const row = $('win-row'); if (!row) return;
+  row.classList.remove('wr-short', 'wr-tiny');
+  const n = $('win-next');
+  if (n && !n.querySelector('.wr-x') && /^Back to /.test(n.textContent)) { const rest = n.textContent.slice(8); n.textContent = ''; const x = document.createElement('span'); x.className = 'wr-x'; x.textContent = 'Back to '; const y = document.createElement('span'); y.className = 'wr-rest'; y.textContent = rest; n.append(x, y); }
+  const over = () => [...row.querySelectorAll('.btn')].some((b) => b.getClientRects().length && b.scrollWidth > b.clientWidth + 1);
+  if (over()) row.classList.add('wr-short');
+  if (over()) row.classList.add('wr-tiny');
+}
+// r6 (QA B-r5-1): keyboard repeats. Enter activates on keydown, so a held or doubled Enter ran straight through the
+// win steps. Rules, for Enter / Space whose target is inside a guarded zone (#win, or #levels-page right after
+// "Replay a level"):
+//  - an auto-repeat keydown (e.repeat) never activates;
+//  - a key that was already down when the step changed is "stale" and never activates until it is released;
+//  - a fresh press within WIN_KEY_GUARD_MS of a step change is ignored. Exception (NB-r4-3): a fresh Home press.
+// Blocking is done on keydown and keyup (Space activates on keyup), so the button never gets the click. Programmatic
+// and AT clicks (no key event) are untouched; after the guard a deliberate press works as before.
+const WIN_KEY_GUARD_MS = 300, LEVELS_INPUT_GUARD_MS = 700;
+const keyGuard = {
+  until: { win: 0, levels: 0 }, held: new Map(),
+  arm(zone) { this.until[zone] = performance.now() + WIN_KEY_GUARD_MS; for (const v of this.held.values()) v.stale = true; },
+  zoneOf(t) { if (!(t instanceof Element)) return null; if (t.closest('#win')) return 'win'; if (t.closest('#levels-page')) return 'levels'; return null; },
+};
+function bindKeyGuard() {
+  const act = (e) => e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar';
+  const stop = (e) => { e.preventDefault(); e.stopImmediatePropagation(); };
+  window.addEventListener('keydown', (e) => {
+    if (!act(e)) return;
+    let h = keyGuard.held.get(e.key);
+    if (!h) { h = { stale: e.repeat, blocked: false }; keyGuard.held.set(e.key, h); }
+    else if (!e.repeat) { h.stale = false; h.blocked = false; } // a new press (keyup was missed)
+    const z = keyGuard.zoneOf(e.target); if (!z) return;
+    const early = performance.now() < keyGuard.until[z] && !(z === 'win' && e.target.closest?.('#win-home') && !e.repeat && !h.stale);
+    // a Space auto-repeat is only swallowed (Space activates once, on release, as usual); an Enter repeat would act
+    if (e.repeat && e.key !== 'Enter' && !h.stale && !h.blocked) { stop(e); return; }
+    if (e.repeat || h.stale || early) { h.blocked = true; stop(e); }
+  }, true);
+  window.addEventListener('keyup', (e) => {
+    if (!act(e)) return;
+    const h = keyGuard.held.get(e.key); keyGuard.held.delete(e.key);
+    if (h && (h.blocked || h.stale) && keyGuard.zoneOf(e.target)) stop(e);
+  }, true);
+  window.addEventListener('blur', () => keyGuard.held.clear());
+}
+// r6 (QA NB-r5-1): the Levels page opened from "Replay a level" gets the same fresh-press guard as the win layer:
+// pointer presses for LEVELS_INPUT_GUARD_MS (a click counts only if its press started after it) and keys as above.
+let levelsGuardUntil = 0, levelsPressBlocked = false;
+function guardLevelsInput() { levelsGuardUntil = performance.now() + LEVELS_INPUT_GUARD_MS; levelsPressBlocked = false; keyGuard.arm('levels'); }
+function bindLevelsInputGuard() {
+  const lp = $('levels-page'); if (!lp) return;
+  const stop = (e) => { e.preventDefault(); e.stopImmediatePropagation(); };
+  lp.addEventListener('pointerdown', (e) => { levelsPressBlocked = performance.now() < levelsGuardUntil; if (levelsPressBlocked) stop(e); }, true);
+  lp.addEventListener('click', (e) => {
+    if (e.detail === 0 && !e.pointerType) return; // keyboard (guarded on the key) / programmatic
+    if (levelsPressBlocked || performance.now() < levelsGuardUntil) stop(e);
+    levelsPressBlocked = false;
+  }, true);
+}
+function bindWinInputGuard() {
+  bindKeyGuard(); bindLevelsInputGuard();
+  const win = $('win'); if (!win) return;
+  let shownAt = win.hidden ? 0 : performance.now(), pressOk = false;
+  // r5 (QA B-r4-1): re-arm on EVERY step change of the layer too (card <-> rating, rating-after, pack card) and on any
+  // content swap that keeps the layer shown: key = hidden + step classes + the visible buttons' labels.
+  const stepKey = () => [win.hidden, ...['rating', 'rating-after', 'pack-done'].map((c) => win.classList.contains(c)),
+    ...[...win.querySelectorAll('button')].filter((b) => b.getClientRects().length).map((b) => b.id + ':' + b.textContent)].join('|');
+  let key = stepKey();
+  new MutationObserver(() => { const k = stepKey(); if (k === key) return; key = k; if (!win.hidden) { shownAt = performance.now(); pressOk = false; keyGuard.arm('win'); requestAnimationFrame(fitWinRow); } })
+    .observe(win, { attributes: true, attributeFilter: ['hidden', 'class'], subtree: true, childList: true, characterData: true });
+  window.addEventListener('resize', () => { if (!win.hidden) fitWinRow(); });
+  const early = () => win.hidden || performance.now() - shownAt < WIN_INPUT_GUARD_MS;
+  win.addEventListener('pointerdown', (e) => { pressOk = !early(); if (!pressOk) { e.preventDefault(); e.stopPropagation(); } }, true);
+  win.addEventListener('click', (e) => {
+    if (e.detail === 0 && !e.pointerType) return; // keyboard / programmatic
+    if (!pressOk || early()) { e.preventDefault(); e.stopImmediatePropagation(); }
+    pressOk = false;
+  }, true);
+}
 function init() {
   document.title = GAME_NAME;
   // r20 C: inject tile gradient defs once (not display:none — Safari); wordmark SVG.
@@ -9221,15 +10176,19 @@ function init() {
   $('hint-badge')?.addEventListener('click', onBankTap);
   $('hint-badge')?.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && $('hint-badge').getAttribute('role') === 'button') onBankTap(e); });
   window.addEventListener('resize', () => refreshHintBadge());
-  $('hint-chooser-close')?.addEventListener('click', () => closeHintChooser());
+  $('hint-chooser-close')?.addEventListener('click', (e) => closeHintChooser({ user: true, e }));
+  document.addEventListener('pointerdown', () => { st.lastPointerDownAt = performance.now(); }, true); // 1.0.6 r2: fresh-press guard
+  $('hint-ad-cancel')?.addEventListener('pointerdown', () => { st.adCancelDownAt = performance.now(); });
+  $('hint-ad-cancel')?.addEventListener('click', onAdWaitCancel);
   // closes on click (the scrim is still there when the click lands, so the tap never falls through to the board)
   $('hint-chooser-scrim')?.addEventListener('click', onChooserScrim);
   $('tut-skip')?.addEventListener('click', () => { if (st.mode === 'tutorial') next('next_skip'); });
   $('new').addEventListener('click', () => (st.mode !== 'tutorial' && st.won && st.winNextAction ? winNext() : next('next_skip')));
   $('win-next').addEventListener('click', winNext);
+  bindWinInputGuard();
   // r20 C: color-scheme only light — no OS dark listener.
 
-  $('win-home')?.addEventListener('click', () => { if (!$('win-next').classList.contains('is-armed')) return; clearWinFx(); $('win').hidden = true; showView('levels', 'win_home'); });
+  $('win-home')?.addEventListener('click', (e) => { if (!$('win-next').classList.contains('is-armed') && !(e.detail === 0 && !e.pointerType)) return; /* r5 NB-r4-3: keyboard / AT activation is never blocked by the 200ms arm delay */ clearWinFx(); $('win').hidden = true; showView('levels', 'win_home'); });
   $('win-alt').addEventListener('click', () => (st.mode === 'tutorial' ? startTutorial(st.tutorialLevels.length - 1) : st.winAlt && cardAction($('win-alt').textContent, st.winAlt)));
   $('level-select').addEventListener('change', (e) => {
     const i = +e.target.value;
@@ -9314,6 +10273,7 @@ function init() {
 
   initPlaytest();
   hintStore.reset(); migrate103(); grantDailyHints('start'); // 1.0.3 hint balance (after the dev sandbox is decided)
+  restorePendingAdReward(); // 1.0.6 r2: a reward earned just before the app was killed (before the ad was dismissed)
 
   const search = location.search;
   const modeParam = params.get('mode');
@@ -9409,7 +10369,7 @@ function init() {
     clampStars,
     get ump() { return umpInfo(); }, get consentOpen() { return !!st.consentOpen; },
     adCtx, get adBusy() { return !!st.adBusy; }, get navGen() { return st.navGen || 0; }, get nextBusy() { const b = document.getElementById('win-next'); return !!b && b.classList.contains('is-busy') && b.getAttribute('aria-busy') === 'true'; }, get adDue() { return !!st.adDue; }, get chapterMoment() { return st.chapterMoment || null; },
-    get adLog() { return (st.adLog || []).slice(); }, get adHints() { return st.adHints || 0; }, setAdClock(fn) { adClock = typeof fn === 'function' ? fn : () => Date.now(); }, setAdTimeout(ms) { setAdTimeoutMs(ms); }, get audience() { return currentAudience(); }, get adInitOptions() { return adInitOptions(); }, get ageOpen() { return !!st.ageOpen; }, AGE_GATE, CHILD_DIRECTED_ALL, get adOutcome() { return lastAdOutcome(); },
+    get adLog() { return (st.adLog || []).slice(); }, get adHints() { return st.adHints || 0; }, setAdClock(fn) { adClock = typeof fn === 'function' ? fn : () => Date.now(); }, setAdTimeout(ms) { setAdTimeoutMs(ms); }, get audience() { return currentAudience(); }, get adInitOptions() { return adInitOptions(); }, get ageOpen() { return !!st.ageOpen; }, AGE_GATE, CHILD_DIRECTED_ALL, get adOutcome() { return lastAdOutcome(); }, get adPreload() { return adPreloadState(); }, get adWaiting() { return !!st.adWaiting; }, get boardTapsIgnored() { return st.boardTapsIgnored || 0; },
     chapterMomentFor: (id) => { const l = st.packLevels.find((x) => x.id === id); return l ? chapterMomentFor(l, false) : 'missing'; },
     get shareAttempt() { return st.shareAttempt ? { ...st.shareAttempt } : null; },
     tipsUnlocked,
