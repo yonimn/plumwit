@@ -74,6 +74,10 @@ main { display: block; }
   padding: 0.4rem 0.9rem; border: 1.5px solid var(--plum); border-radius: 999px;
   color: var(--plum); font-family: var(--display); font-weight: 600; font-size: 0.9rem;
 }
+/* Official Google Play badge: unaltered artwork; the PNG carries its own clear space */
+.play-badge { margin: 0.25rem 0 1.25rem; }
+.play-badge img { display: block; height: 80px; width: auto; }
+.site-footer .tm { font-size: 0.8rem; }
 .quiet-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); max-width: none; }
 .quiet-list h3 { margin-top: 0; }
 .quiet-list p { margin: 0; }
