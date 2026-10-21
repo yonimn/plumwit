@@ -2570,6 +2570,183 @@ html.tl-lowfx .tl-confetti.tl-c107 > i:nth-child(n+21) { display: none; }
   .board-wrap.tl-win .win-banner #win-card { animation: tl-s-fade 160ms linear 0ms both !important; transform: none !important; }
   .board-wrap.tl-win .win-banner #win-row, .board-wrap.tl-win .win-stars > span { animation: none !important; }
 }
+
+/* ============ 1.0.7 preview-3: centred card over a full-screen scrim, text heading, full-screen celebration ============ */
+/* #win becomes a fixed full-viewport layer that centres the card; it never takes input itself (only the card does);
+   the finished board under it ignores taps while the win is up (as #win used to block them). */
+body[data-view="play"] .board-wrap.tl-win > .win-banner:not([hidden]) {
+  position: fixed !important; inset: 0 !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; min-height: 0 !important; box-sizing: border-box !important; max-width: none !important; max-height: none !important; margin: 0 !important;
+  z-index: 65; display: flex !important; align-items: center !important; /* above the board UI (≤60), below the hint sheet (69/70), consent (1000) */ justify-content: center !important;
+  background: transparent !important; border-radius: 0 !important; padding: 16px !important; pointer-events: none; overflow: visible !important; }
+body[data-view="play"] .board-wrap.tl-win > .win-banner:not([hidden])::before { content: ''; position: fixed; inset: 0; z-index: -1;
+  background: rgba(30, 22, 51, .6); pointer-events: none; animation: tl-s-fade 200ms linear 0ms both; }
+body[data-view="play"] .board-wrap.tl-win > .win-banner:not([hidden]) > * { pointer-events: auto; }
+body[data-view="play"] .board-wrap.tl-win #board { pointer-events: none; }
+body[data-view="play"] .board-wrap.tl-win .win-banner .win-card { padding-bottom: 24px !important; box-shadow: 0 18px 48px rgba(10, 6, 20, .45), 0 2px 6px rgba(10, 6, 20, .25) !important; }
+/* plain heading */
+.win-banner .win-card .win-title.is-heading { font-size: 2.1rem !important; font-weight: 900; line-height: 1.1; color: var(--tl-ink, #1E1633) !important;
+  background: none !important; border: 0 !important; box-shadow: none !important; aspect-ratio: auto !important; width: auto !important; height: auto !important;
+  letter-spacing: .01em; text-align: center; padding: 2px 0 0; }
+.win-banner .win-card .win-title.is-heading::after { content: ' \2726'; font-size: .55em; color: #8A55C2; vertical-align: .55em; }
+@media (max-height: 640px) { .win-banner .win-card .win-title.is-heading { font-size: 1.8rem !important; } }
+/* stars land with a bounce and a gold sparkle */
+.board-wrap.tl-win.is-pop .win-stars > span { position: relative; }
+.board-wrap.tl-win.is-pop .win-stars > .star-filled { animation-name: tl-star-land; animation-duration: 360ms; }
+@keyframes tl-star-land { 0% { opacity: 0; transform: translateY(-16px) scale(.3); } 55% { opacity: 1; transform: translateY(0) scale(1.28); } 75% { transform: scale(.9); } 100% { opacity: 1; transform: scale(1); } }
+.board-wrap.tl-win.is-pop .win-stars > .star-filled::after { content: '\2726'; position: absolute; left: 70%; top: -30%; font-size: .55em; color: #F2B33D;
+  -webkit-text-stroke: 0; opacity: 0; animation: tl-star-glint 420ms ease-out both; animation-delay: inherit; pointer-events: none; }
+.board-wrap.tl-win.is-pop .win-stars > span:nth-child(1)::after { animation-delay: 520ms; }
+.board-wrap.tl-win.is-pop .win-stars > span:nth-child(2)::after { animation-delay: 660ms; }
+.board-wrap.tl-win.is-pop .win-stars > span:nth-child(3)::after { animation-delay: 800ms; }
+@keyframes tl-star-glint { 0% { opacity: 0; transform: scale(.2) rotate(0); } 40% { opacity: 1; transform: scale(1.3) rotate(45deg); } 100% { opacity: 0; transform: scale(.6) rotate(90deg); } }
+/* full-screen confetti: corner cannons (bottom-left, bottom-right) + a top shower; in front of everything, never takes input */
+.board-wrap.tl-win .tl-confetti.tl-c3 { position: fixed !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 66 !important; overflow: hidden; pointer-events: none !important; }
+.tl-confetti.tl-c3 > i { position: absolute; left: var(--x0); top: var(--y0); opacity: 0; border: 1.2px solid var(--tl-ink); box-sizing: border-box; pointer-events: none;
+  animation: var(--anim) var(--dur) linear var(--delay) both, tl-c3-flutter var(--fl, 380ms) ease-in-out var(--delay) 4 alternate; will-change: transform, opacity; }
+.tl-confetti.tl-c3 > i.c-r { border: 0; border-radius: 2px; clip-path: none; }
+@keyframes tl-c3-cannon {
+  0%   { opacity: 1; transform: translate(0, 0) rotate(0); animation-timing-function: cubic-bezier(.12, .8, .32, 1); }
+  48%  { opacity: 1; transform: translate(var(--dx), var(--up)) rotate(calc(var(--rot) * .5)); animation-timing-function: cubic-bezier(.5, 0, .75, .4); }
+  82%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(var(--dx) * 1.3), calc(var(--up) + var(--fall))) rotate(var(--rot)); }
+}
+@keyframes tl-c3-shower {
+  0%   { opacity: 1; transform: translate(0, 0) rotate(0); }
+  35%  { transform: translate(var(--sway), calc(var(--fall) * .35)) rotate(calc(var(--rot) * .35)); }
+  70%  { opacity: 1; transform: translate(calc(var(--sway) * -.6), calc(var(--fall) * .7)) rotate(calc(var(--rot) * .7)); }
+  100% { opacity: 0; transform: translate(calc(var(--sway) * .4), var(--fall)) rotate(var(--rot)); }
+}
+@keyframes tl-c3-flutter { from { scale: 1 1; } to { scale: 1 .3; } }
+html.tl-lowfx .tl-confetti.tl-c3 > i { display: block; }
+html.tl-lowfx .tl-confetti.tl-c3 > i:nth-child(n+51) { display: none; }
+.tl-confetti.tl-c3 > i:nth-child(1) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 75vw; --up: -64vh; --fall: 47vh; --rot: -672deg; --dur: 1387ms; --delay: 60ms; --fl: 268ms; width: 10.9px; height: 10.9px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(2) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 60vw; --up: -71vh; --fall: 44vh; --rot: -504deg; --dur: 1362ms; --delay: 78ms; width: 9.7px; height: 9.7px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(3) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -58vw; --up: -94vh; --fall: 55vh; --rot: -409deg; --dur: 1391ms; --delay: 128ms; --fl: 318ms; width: 10.4px; height: 10.4px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(4) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -64vw; --up: -83vh; --fall: 45vh; --rot: -720deg; --dur: 1309ms; --delay: 197ms; --fl: 419ms; width: 10.2px; height: 10.2px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(5) { --anim: tl-c3-shower; --x0: 16%; --y0: -24px; --sway: -4vw; --fall: 103vh; --rot: -592deg; --dur: 1489ms; --delay: 247ms; --fl: 402ms; width: 14.2px; height: 14.2px; background: #F2B33D; }
+.tl-confetti.tl-c3 > i:nth-child(6) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 81vw; --up: -78vh; --fall: 26vh; --rot: -516deg; --dur: 1269ms; --delay: 195ms; --fl: 371ms; width: 4.8px; height: 19.3px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(7) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 18vw; --up: -71vh; --fall: 54vh; --rot: -552deg; --dur: 1369ms; --delay: 137ms; --fl: 346ms; width: 13.1px; height: 13.1px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(8) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -28vw; --up: -96vh; --fall: 34vh; --rot: -420deg; --dur: 1488ms; --delay: 177ms; --fl: 344ms; width: 13.8px; height: 13.8px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(9) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -43vw; --up: -74vh; --fall: 54vh; --rot: 473deg; --dur: 1291ms; --delay: 218ms; width: 14.1px; height: 14.1px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(10) { --anim: tl-c3-shower; --x0: 35%; --y0: -24px; --sway: -1vw; --fall: 65vh; --rot: -816deg; --dur: 1324ms; --delay: 158ms; width: 10.4px; height: 10.4px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(11) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 53vw; --up: -62vh; --fall: 34vh; --rot: 747deg; --dur: 1351ms; --delay: 215ms; width: 12.9px; height: 12.9px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(12) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 69vw; --up: -90vh; --fall: 48vh; --rot: 829deg; --dur: 1363ms; --delay: 208ms; --fl: 359ms; width: 9.4px; height: 9.4px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(13) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -24vw; --up: -84vh; --fall: 34vh; --rot: 488deg; --dur: 1372ms; --delay: 159ms; --fl: 439ms; width: 13.6px; height: 13.6px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(14) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -81vw; --up: -80vh; --fall: 47vh; --rot: 836deg; --dur: 1513ms; --delay: 178ms; --fl: 380ms; width: 14.6px; height: 14.6px; background: #F2B33D; }
+.tl-confetti.tl-c3 > i:nth-child(15) { --anim: tl-c3-shower; --x0: 72%; --y0: -24px; --sway: 6vw; --fall: 74vh; --rot: -646deg; --dur: 1432ms; --delay: 222ms; width: 9.7px; height: 9.7px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(16) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 71vw; --up: -61vh; --fall: 40vh; --rot: -836deg; --dur: 1456ms; --delay: 249ms; --fl: 440ms; width: 11.9px; height: 11.9px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(17) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 84vw; --up: -55vh; --fall: 44vh; --rot: -746deg; --dur: 1517ms; --delay: 149ms; --fl: 268ms; width: 4.3px; height: 25.1px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(18) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -54vw; --up: -62vh; --fall: 46vh; --rot: -697deg; --dur: 1234ms; --delay: 217ms; --fl: 300ms; width: 15.0px; height: 15.0px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(19) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -25vw; --up: -58vh; --fall: 39vh; --rot: -448deg; --dur: 1395ms; --delay: 207ms; --fl: 326ms; width: 9.2px; height: 9.2px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(20) { --anim: tl-c3-shower; --x0: 83%; --y0: -24px; --sway: 2vw; --fall: 105vh; --rot: -414deg; --dur: 1422ms; --delay: 88ms; width: 13.4px; height: 13.4px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(21) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 30vw; --up: -72vh; --fall: 34vh; --rot: 673deg; --dur: 1461ms; --delay: 128ms; width: 11.1px; height: 11.1px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(22) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 24vw; --up: -57vh; --fall: 27vh; --rot: -576deg; --dur: 1334ms; --delay: 180ms; --fl: 342ms; width: 11.8px; height: 11.8px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(23) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -21vw; --up: -98vh; --fall: 26vh; --rot: -832deg; --dur: 1252ms; --delay: 257ms; width: 12.5px; height: 12.5px; background: #F2B33D; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(24) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -49vw; --up: -76vh; --fall: 43vh; --rot: 860deg; --dur: 1261ms; --delay: 142ms; width: 11.7px; height: 11.7px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(25) { --anim: tl-c3-shower; --x0: 34%; --y0: -24px; --sway: -2vw; --fall: 69vh; --rot: -752deg; --dur: 1359ms; --delay: 205ms; width: 10.6px; height: 10.6px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(26) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 69vw; --up: -69vh; --fall: 35vh; --rot: 882deg; --dur: 1200ms; --delay: 223ms; --fl: 266ms; width: 9.1px; height: 9.1px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(27) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 18vw; --up: -74vh; --fall: 31vh; --rot: -639deg; --dur: 1317ms; --delay: 204ms; --fl: 346ms; width: 11.1px; height: 11.1px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(28) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -49vw; --up: -70vh; --fall: 37vh; --rot: -844deg; --dur: 1383ms; --delay: 149ms; --fl: 434ms; width: 4.1px; height: 26.0px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(29) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -26vw; --up: -66vh; --fall: 52vh; --rot: 859deg; --dur: 1297ms; --delay: 237ms; --fl: 265ms; width: 13.4px; height: 13.4px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(30) { --anim: tl-c3-shower; --x0: 47%; --y0: -24px; --sway: 5vw; --fall: 81vh; --rot: -858deg; --dur: 1452ms; --delay: 75ms; --fl: 382ms; width: 10.0px; height: 10.0px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(31) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 28vw; --up: -64vh; --fall: 36vh; --rot: 765deg; --dur: 1266ms; --delay: 212ms; width: 10.9px; height: 10.9px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(32) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 83vw; --up: -70vh; --fall: 35vh; --rot: 877deg; --dur: 1312ms; --delay: 197ms; --fl: 424ms; width: 9.1px; height: 9.1px; background: #F2B33D; }
+.tl-confetti.tl-c3 > i:nth-child(33) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -43vw; --up: -73vh; --fall: 26vh; --rot: -435deg; --dur: 1204ms; --delay: 205ms; --fl: 296ms; width: 9.6px; height: 9.6px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(34) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -28vw; --up: -67vh; --fall: 34vh; --rot: 559deg; --dur: 1301ms; --delay: 84ms; --fl: 419ms; width: 13.1px; height: 13.1px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(35) { --anim: tl-c3-shower; --x0: 34%; --y0: -24px; --sway: -9vw; --fall: 99vh; --rot: -491deg; --dur: 1385ms; --delay: 87ms; --fl: 278ms; width: 9.5px; height: 9.5px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(36) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 79vw; --up: -60vh; --fall: 51vh; --rot: 492deg; --dur: 1472ms; --delay: 239ms; --fl: 304ms; width: 12.0px; height: 12.0px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(37) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 84vw; --up: -78vh; --fall: 35vh; --rot: 576deg; --dur: 1369ms; --delay: 140ms; --fl: 440ms; width: 12.5px; height: 12.5px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(38) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -81vw; --up: -93vh; --fall: 55vh; --rot: -458deg; --dur: 1432ms; --delay: 157ms; --fl: 300ms; width: 14.2px; height: 14.2px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(39) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -63vw; --up: -66vh; --fall: 34vh; --rot: -485deg; --dur: 1468ms; --delay: 116ms; width: 4.2px; height: 21.8px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(40) { --anim: tl-c3-shower; --x0: 35%; --y0: -24px; --sway: -5vw; --fall: 67vh; --rot: -810deg; --dur: 1339ms; --delay: 103ms; --fl: 379ms; width: 12.8px; height: 12.8px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(41) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 60vw; --up: -67vh; --fall: 45vh; --rot: 445deg; --dur: 1227ms; --delay: 239ms; width: 11.4px; height: 11.4px; background: #F2B33D; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(42) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 77vw; --up: -61vh; --fall: 44vh; --rot: -855deg; --dur: 1470ms; --delay: 119ms; width: 9.6px; height: 9.6px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(43) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -77vw; --up: -56vh; --fall: 31vh; --rot: 486deg; --dur: 1463ms; --delay: 257ms; width: 13.0px; height: 13.0px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(44) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -60vw; --up: -68vh; --fall: 42vh; --rot: -708deg; --dur: 1467ms; --delay: 222ms; --fl: 363ms; width: 10.0px; height: 10.0px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(45) { --anim: tl-c3-shower; --x0: 64%; --y0: -24px; --sway: -0vw; --fall: 96vh; --rot: -861deg; --dur: 1325ms; --delay: 118ms; --fl: 382ms; width: 9.8px; height: 9.8px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(46) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 29vw; --up: -86vh; --fall: 42vh; --rot: 855deg; --dur: 1325ms; --delay: 205ms; --fl: 317ms; width: 12.6px; height: 12.6px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(47) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 49vw; --up: -72vh; --fall: 55vh; --rot: -794deg; --dur: 1472ms; --delay: 175ms; width: 12.1px; height: 12.1px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(48) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -39vw; --up: -90vh; --fall: 55vh; --rot: -634deg; --dur: 1324ms; --delay: 223ms; width: 9.0px; height: 9.0px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(49) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -29vw; --up: -65vh; --fall: 37vh; --rot: -462deg; --dur: 1302ms; --delay: 104ms; --fl: 412ms; width: 9.7px; height: 9.7px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(50) { --anim: tl-c3-shower; --x0: 47%; --y0: -24px; --sway: -3vw; --fall: 90vh; --rot: 710deg; --dur: 1205ms; --delay: 132ms; --fl: 417ms; width: 4.5px; height: 18.4px; background: #F2B33D; }
+.tl-confetti.tl-c3 > i:nth-child(51) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 82vw; --up: -58vh; --fall: 38vh; --rot: -775deg; --dur: 1357ms; --delay: 242ms; --fl: 447ms; width: 11.4px; height: 11.4px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(52) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 22vw; --up: -84vh; --fall: 35vh; --rot: 456deg; --dur: 1479ms; --delay: 113ms; width: 13.8px; height: 13.8px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(53) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -24vw; --up: -61vh; --fall: 28vh; --rot: 850deg; --dur: 1452ms; --delay: 70ms; width: 14.0px; height: 14.0px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(54) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -41vw; --up: -98vh; --fall: 34vh; --rot: -553deg; --dur: 1476ms; --delay: 133ms; --fl: 284ms; width: 11.1px; height: 11.1px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(55) { --anim: tl-c3-shower; --x0: 19%; --y0: -24px; --sway: -1vw; --fall: 96vh; --rot: -635deg; --dur: 1481ms; --delay: 191ms; --fl: 410ms; width: 12.1px; height: 12.1px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(56) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 60vw; --up: -67vh; --fall: 55vh; --rot: -456deg; --dur: 1203ms; --delay: 157ms; width: 12.8px; height: 12.8px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(57) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 29vw; --up: -55vh; --fall: 49vh; --rot: 703deg; --dur: 1304ms; --delay: 74ms; width: 10.2px; height: 10.2px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(58) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -35vw; --up: -77vh; --fall: 49vh; --rot: 873deg; --dur: 1269ms; --delay: 68ms; --fl: 339ms; width: 14.8px; height: 14.8px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(59) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -79vw; --up: -62vh; --fall: 39vh; --rot: 839deg; --dur: 1519ms; --delay: 117ms; width: 13.1px; height: 13.1px; background: #F2B33D; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(60) { --anim: tl-c3-shower; --x0: 21%; --y0: -24px; --sway: -8vw; --fall: 84vh; --rot: 500deg; --dur: 1306ms; --delay: 157ms; --fl: 402ms; width: 11.2px; height: 11.2px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(61) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 83vw; --up: -70vh; --fall: 50vh; --rot: -845deg; --dur: 1480ms; --delay: 86ms; width: 4.9px; height: 24.4px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(62) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 23vw; --up: -64vh; --fall: 38vh; --rot: -565deg; --dur: 1243ms; --delay: 88ms; --fl: 322ms; width: 9.8px; height: 9.8px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(63) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -81vw; --up: -61vh; --fall: 27vh; --rot: 808deg; --dur: 1312ms; --delay: 227ms; width: 10.9px; height: 10.9px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(64) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -63vw; --up: -79vh; --fall: 49vh; --rot: -821deg; --dur: 1354ms; --delay: 98ms; --fl: 333ms; width: 12.2px; height: 12.2px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(65) { --anim: tl-c3-shower; --x0: 49%; --y0: -24px; --sway: -3vw; --fall: 71vh; --rot: 439deg; --dur: 1289ms; --delay: 72ms; width: 14.3px; height: 14.3px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(66) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 84vw; --up: -60vh; --fall: 50vh; --rot: -750deg; --dur: 1298ms; --delay: 222ms; --fl: 312ms; width: 9.1px; height: 9.1px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(67) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 51vw; --up: -60vh; --fall: 53vh; --rot: 429deg; --dur: 1317ms; --delay: 189ms; width: 9.7px; height: 9.7px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(68) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -46vw; --up: -66vh; --fall: 30vh; --rot: -576deg; --dur: 1449ms; --delay: 174ms; --fl: 328ms; width: 14.4px; height: 14.4px; background: #F2B33D; }
+.tl-confetti.tl-c3 > i:nth-child(69) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -20vw; --up: -59vh; --fall: 52vh; --rot: 723deg; --dur: 1443ms; --delay: 224ms; width: 13.0px; height: 13.0px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(70) { --anim: tl-c3-shower; --x0: 96%; --y0: -24px; --sway: 5vw; --fall: 65vh; --rot: -539deg; --dur: 1271ms; --delay: 98ms; --fl: 360ms; width: 9.4px; height: 9.4px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(71) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 80vw; --up: -66vh; --fall: 48vh; --rot: -793deg; --dur: 1302ms; --delay: 210ms; --fl: 325ms; width: 13.9px; height: 13.9px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(72) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 21vw; --up: -72vh; --fall: 38vh; --rot: -834deg; --dur: 1204ms; --delay: 135ms; --fl: 459ms; width: 4.5px; height: 22.1px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(73) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -76vw; --up: -81vh; --fall: 52vh; --rot: -428deg; --dur: 1493ms; --delay: 125ms; --fl: 425ms; width: 13.2px; height: 13.2px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(74) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -52vw; --up: -95vh; --fall: 29vh; --rot: -505deg; --dur: 1378ms; --delay: 87ms; width: 9.3px; height: 9.3px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(75) { --anim: tl-c3-shower; --x0: 90%; --y0: -24px; --sway: -4vw; --fall: 93vh; --rot: -473deg; --dur: 1420ms; --delay: 199ms; --fl: 445ms; width: 11.4px; height: 11.4px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(76) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 64vw; --up: -75vh; --fall: 42vh; --rot: -436deg; --dur: 1414ms; --delay: 98ms; width: 12.7px; height: 12.7px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(77) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 76vw; --up: -60vh; --fall: 37vh; --rot: 652deg; --dur: 1476ms; --delay: 74ms; width: 14.9px; height: 14.9px; background: #F2B33D; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(78) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -80vw; --up: -58vh; --fall: 51vh; --rot: 777deg; --dur: 1230ms; --delay: 89ms; width: 12.3px; height: 12.3px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(79) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -27vw; --up: -89vh; --fall: 53vh; --rot: 881deg; --dur: 1483ms; --delay: 65ms; --fl: 300ms; width: 10.1px; height: 10.1px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(80) { --anim: tl-c3-shower; --x0: 55%; --y0: -24px; --sway: -9vw; --fall: 73vh; --rot: 779deg; --dur: 1215ms; --delay: 218ms; --fl: 418ms; width: 14.4px; height: 14.4px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(81) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 19vw; --up: -81vh; --fall: 49vh; --rot: 605deg; --dur: 1279ms; --delay: 195ms; width: 12.3px; height: 12.3px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(82) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 43vw; --up: -65vh; --fall: 38vh; --rot: -595deg; --dur: 1378ms; --delay: 124ms; width: 11.3px; height: 11.3px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(83) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -32vw; --up: -60vh; --fall: 37vh; --rot: -723deg; --dur: 1349ms; --delay: 133ms; --fl: 443ms; width: 4.7px; height: 24.6px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(84) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -79vw; --up: -96vh; --fall: 28vh; --rot: 727deg; --dur: 1266ms; --delay: 109ms; width: 11.2px; height: 11.2px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(85) { --anim: tl-c3-shower; --x0: 41%; --y0: -24px; --sway: 5vw; --fall: 94vh; --rot: -532deg; --dur: 1393ms; --delay: 69ms; --fl: 372ms; width: 14.1px; height: 14.1px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(86) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 56vw; --up: -65vh; --fall: 29vh; --rot: 830deg; --dur: 1458ms; --delay: 187ms; width: 14.7px; height: 14.7px; background: #F2B33D; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(87) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 36vw; --up: -62vh; --fall: 42vh; --rot: 573deg; --dur: 1403ms; --delay: 202ms; --fl: 340ms; width: 11.0px; height: 11.0px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(88) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -82vw; --up: -62vh; --fall: 49vh; --rot: 594deg; --dur: 1373ms; --delay: 214ms; width: 13.1px; height: 13.1px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(89) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -52vw; --up: -58vh; --fall: 31vh; --rot: 801deg; --dur: 1336ms; --delay: 71ms; --fl: 281ms; width: 9.2px; height: 9.2px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(90) { --anim: tl-c3-shower; --x0: 47%; --y0: -24px; --sway: 7vw; --fall: 98vh; --rot: 487deg; --dur: 1201ms; --delay: 258ms; width: 9.5px; height: 9.5px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(91) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 23vw; --up: -56vh; --fall: 43vh; --rot: 805deg; --dur: 1254ms; --delay: 215ms; --fl: 332ms; width: 10.2px; height: 10.2px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(92) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 64vw; --up: -69vh; --fall: 36vh; --rot: 666deg; --dur: 1338ms; --delay: 102ms; width: 9.9px; height: 9.9px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(93) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -20vw; --up: -55vh; --fall: 54vh; --rot: -779deg; --dur: 1268ms; --delay: 78ms; --fl: 296ms; width: 12.3px; height: 12.3px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(94) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -74vw; --up: -85vh; --fall: 49vh; --rot: 750deg; --dur: 1366ms; --delay: 197ms; width: 4.3px; height: 20.2px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(95) { --anim: tl-c3-shower; --x0: 24%; --y0: -24px; --sway: 7vw; --fall: 63vh; --rot: 500deg; --dur: 1216ms; --delay: 202ms; --fl: 331ms; width: 14.8px; height: 14.8px; background: #F2B33D; }
+.tl-confetti.tl-c3 > i:nth-child(96) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 54vw; --up: -80vh; --fall: 40vh; --rot: -872deg; --dur: 1470ms; --delay: 183ms; --fl: 339ms; width: 9.5px; height: 9.5px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(97) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 64vw; --up: -89vh; --fall: 38vh; --rot: 788deg; --dur: 1477ms; --delay: 84ms; --fl: 362ms; width: 14.9px; height: 14.9px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(98) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -70vw; --up: -67vh; --fall: 35vh; --rot: 845deg; --dur: 1292ms; --delay: 198ms; --fl: 403ms; width: 13.1px; height: 13.1px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(99) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -76vw; --up: -60vh; --fall: 43vh; --rot: 635deg; --dur: 1324ms; --delay: 202ms; --fl: 442ms; width: 14.9px; height: 14.9px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(100) { --anim: tl-c3-shower; --x0: 83%; --y0: -24px; --sway: 5vw; --fall: 88vh; --rot: -884deg; --dur: 1471ms; --delay: 116ms; --fl: 313ms; width: 9.9px; height: 9.9px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(101) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 20vw; --up: -73vh; --fall: 50vh; --rot: -740deg; --dur: 1270ms; --delay: 134ms; width: 13.0px; height: 13.0px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(102) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 82vw; --up: -95vh; --fall: 46vh; --rot: 876deg; --dur: 1444ms; --delay: 88ms; width: 12.1px; height: 12.1px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(103) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -31vw; --up: -66vh; --fall: 32vh; --rot: -895deg; --dur: 1262ms; --delay: 60ms; --fl: 288ms; width: 9.3px; height: 9.3px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(104) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -84vw; --up: -75vh; --fall: 40vh; --rot: -794deg; --dur: 1279ms; --delay: 74ms; --fl: 307ms; width: 9.5px; height: 9.5px; background: #F2B33D; }
+.tl-confetti.tl-c3 > i:nth-child(105) { --anim: tl-c3-shower; --x0: 40%; --y0: -24px; --sway: -5vw; --fall: 87vh; --rot: 740deg; --dur: 1516ms; --delay: 217ms; width: 4.3px; height: 24.7px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(106) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 57vw; --up: -86vh; --fall: 25vh; --rot: 573deg; --dur: 1258ms; --delay: 139ms; width: 13.3px; height: 13.3px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(107) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 64vw; --up: -94vh; --fall: 53vh; --rot: 595deg; --dur: 1212ms; --delay: 195ms; width: 14.7px; height: 14.7px; background: #8A55C2; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(108) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -38vw; --up: -60vh; --fall: 31vh; --rot: -460deg; --dur: 1290ms; --delay: 106ms; --fl: 286ms; width: 13.4px; height: 13.4px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(109) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -61vw; --up: -93vh; --fall: 54vh; --rot: -810deg; --dur: 1335ms; --delay: 118ms; width: 12.8px; height: 12.8px; background: #FFFFFF; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(110) { --anim: tl-c3-shower; --x0: 82%; --y0: -24px; --sway: 6vw; --fall: 82vh; --rot: 726deg; --dur: 1468ms; --delay: 185ms; --fl: 414ms; width: 13.7px; height: 13.7px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(111) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 45vw; --up: -59vh; --fall: 40vh; --rot: -758deg; --dur: 1365ms; --delay: 257ms; --fl: 407ms; width: 11.2px; height: 11.2px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(112) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 80vw; --up: -58vh; --fall: 36vh; --rot: -527deg; --dur: 1337ms; --delay: 211ms; width: 11.3px; height: 11.3px; background: #B48BE0; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(113) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -70vw; --up: -83vh; --fall: 38vh; --rot: 635deg; --dur: 1299ms; --delay: 181ms; --fl: 329ms; width: 14.3px; height: 14.3px; background: #F2B33D; }
+.tl-confetti.tl-c3 > i:nth-child(114) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -45vw; --up: -73vh; --fall: 52vh; --rot: -808deg; --dur: 1328ms; --delay: 180ms; width: 12.6px; height: 12.6px; background: #E6D6FA; animation: var(--anim) var(--dur) linear var(--delay) both; }
+.tl-confetti.tl-c3 > i:nth-child(115) { --anim: tl-c3-shower; --x0: 16%; --y0: -24px; --sway: -1vw; --fall: 79vh; --rot: -534deg; --dur: 1510ms; --delay: 123ms; --fl: 379ms; width: 9.6px; height: 9.6px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(116) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 77vw; --up: -97vh; --fall: 28vh; --rot: -569deg; --dur: 1308ms; --delay: 152ms; --fl: 267ms; width: 4.9px; height: 22.6px; background: #B48BE0; }
+.tl-confetti.tl-c3 > i:nth-child(117) { --anim: tl-c3-cannon; --x0: -6px; --y0: calc(100% + 6px); --dx: 78vw; --up: -62vh; --fall: 49vh; --rot: 547deg; --dur: 1307ms; --delay: 200ms; --fl: 311ms; width: 9.5px; height: 9.5px; background: #FFFFFF; }
+.tl-confetti.tl-c3 > i:nth-child(118) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -42vw; --up: -76vh; --fall: 29vh; --rot: 684deg; --dur: 1422ms; --delay: 248ms; --fl: 324ms; width: 10.1px; height: 10.1px; background: #E6D6FA; }
+.tl-confetti.tl-c3 > i:nth-child(119) { --anim: tl-c3-cannon; --x0: calc(100% + 6px); --y0: calc(100% + 6px); --dx: -80vw; --up: -59vh; --fall: 29vh; --rot: -674deg; --dur: 1361ms; --delay: 160ms; --fl: 387ms; width: 14.1px; height: 14.1px; background: #8A55C2; }
+.tl-confetti.tl-c3 > i:nth-child(120) { --anim: tl-c3-shower; --x0: 72%; --y0: -24px; --sway: 9vw; --fall: 99vh; --rot: 419deg; --dur: 1401ms; --delay: 87ms; --fl: 339ms; width: 13.6px; height: 13.6px; background: #B48BE0; }
+@media (prefers-reduced-motion: reduce) {
+  .tl-confetti.tl-c3 { display: none !important; }
+  body[data-view="play"] .board-wrap.tl-win > .win-banner:not([hidden])::before { animation: tl-s-fade 160ms linear 0ms both !important; }
+  .board-wrap.tl-win .win-stars > span::after { display: none !important; }
+}
+.tl-confetti.tl-c3 > i.c-o { border-radius: 50%; clip-path: none; }
+.tl-confetti.tl-c3 > i.c-s { border-radius: 2px; clip-path: none; }
+.tl-confetti.tl-c3 > i.c-t { border: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 </style>
   
   
@@ -2861,7 +3038,7 @@ const APP_VERSION = '1.0.7';
 const BUILD_NUMBER = 22;
 // Build version stamped on every playtest event. scripts/bundle.js replaces 'dev' with
 // "<YYYY-MM-DD>.game1-r<BUILD_NUMBER>+<content hash>" in the built file.
-const BUILD_VERSION = "2026-10-21.game1-r22+af04641";
+const BUILD_VERSION = "2026-10-21.game1-r22+f960885";
 // Store builds set RELEASE=true to ignore every dev URL hook (?dev/?today/?level/?mode/?debug).
 // Keep false for QA builds that still need the exact-dev sandbox.
 const RELEASE = false;
@@ -8068,9 +8245,8 @@ function checkWin() {
     const card = $('win-card'), row = $('win-row');
     const w = wrap.getBoundingClientRect(), c = card?.getBoundingClientRect(), r = row?.getBoundingClientRect();
     if (card && row && row.offsetParent === card) { row.style.setProperty('--pop-ox', `${card.offsetWidth / 2 - row.offsetLeft}px`); row.style.setProperty('--pop-oy', `${card.offsetHeight / 2 - row.offsetTop}px`); }
-    const pos = c ? `left:${c.left + c.width / 2 - w.left}px;top:${c.top + c.height / 2 - w.top}px;--hw:${c.width / 2}px;--hh:${c.height / 2}px` : '';
-    wrap.insertAdjacentHTML('beforeend', `<div class="tl-confetti tl-c107" aria-hidden="true" style="${pos}">` + Array.from({ length: 45 }, (_, i) => `<i class="${['c-o', 'c-t', 'c-s'][i % 3]}"></i>`).join('') + '</div>');
-    st.confettiTimer = setTimeout(() => wrap.querySelector('.tl-confetti')?.remove(), 1200);
+    wrap.insertAdjacentHTML('beforeend', '<div class="tl-confetti tl-c3" aria-hidden="true">' + Array.from({ length: 120 }, (_, i) => `<i class="${i % 11 === 5 ? 'c-r' : ['c-o', 'c-t', 'c-s'][i % 3]}"></i>`).join('') + '</div>');
+    st.confettiTimer = setTimeout(() => wrap.querySelector('.tl-confetti')?.remove(), 1850); // preview-3: ~1.8 s celebration
     if (NATIVE_BUILD) try { navigator.vibrate?.(12); } catch (_) {}
   }
 
@@ -8082,8 +8258,10 @@ function checkWin() {
 function revealWinCard(lvl) {
   // Pack-done / tutorial keep text headlines; normal Solved uses ART.winBanner.
   const useBanner = ART.winBanner && st.mode !== 'tutorial' && !$('win').classList.contains('pack-done');
+  // 1.0.7 preview-3: the normal Solved title is a plain text heading (big bold ink, small sparkle in CSS), no ribbon art.
+  $('win-title').classList.remove('is-heading');
   if (useBanner && !st._packCompletePending) {
-    $('win-title').innerHTML = ART.winBanner.replace(/\saria-hidden="true"/, '').replace(/\sfocusable="false"/, '');
+    $('win-title').textContent = 'Solved!'; $('win-title').classList.add('is-heading');
   } else if (!$('win').classList.contains('pack-done')) {
     $('win-title').textContent = 'Solved!';
   }
