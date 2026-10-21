@@ -2572,12 +2572,12 @@ html.tl-lowfx .tl-confetti.tl-c107 > i:nth-child(n+21) { display: none; }
 }
 
 /* ============ 1.0.7 preview-3: centred card over a full-screen scrim, text heading, full-screen celebration ============ */
-/* #win becomes a fixed full-viewport layer that centres the card; it never takes input itself (only the card does);
+/* #win becomes a fixed full-viewport layer that centres the card and swallows every tap outside it (z 65: below the hint sheet);
    the finished board under it ignores taps while the win is up (as #win used to block them). */
 body[data-view="play"] .board-wrap.tl-win > .win-banner:not([hidden]) {
   position: fixed !important; inset: 0 !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; min-height: 0 !important; box-sizing: border-box !important; max-width: none !important; max-height: none !important; margin: 0 !important;
   z-index: 65; display: flex !important; align-items: center !important; /* above the board UI (≤60), below the hint sheet (69/70), consent (1000) */ justify-content: center !important;
-  background: transparent !important; border-radius: 0 !important; padding: 16px !important; pointer-events: none; overflow: visible !important; }
+  background: transparent !important; border-radius: 0 !important; padding: 16px !important; pointer-events: auto; /* Chief: the scrim swallows taps outside the card (Undo, Restart, Back, tools), like the old win layer */ overflow: visible !important; }
 body[data-view="play"] .board-wrap.tl-win > .win-banner:not([hidden])::before { content: ''; position: fixed; inset: 0; z-index: -1;
   background: rgba(30, 22, 51, .6); pointer-events: none; animation: tl-s-fade 200ms linear 0ms both; }
 body[data-view="play"] .board-wrap.tl-win > .win-banner:not([hidden]) > * { pointer-events: auto; }
@@ -2755,7 +2755,7 @@ html.tl-lowfx .tl-confetti.tl-c3 > i:nth-child(n+51) { display: none; }
   
   
   
-  <link rel="stylesheet" href="css/win-107.css">
+  
 </head>
 <body>
   <!-- r23 §4: Levels page (home). Android back here exits the app; on the play screen it comes back here. -->
@@ -3038,7 +3038,7 @@ const APP_VERSION = '1.0.7';
 const BUILD_NUMBER = 22;
 // Build version stamped on every playtest event. scripts/bundle.js replaces 'dev' with
 // "<YYYY-MM-DD>.game1-r<BUILD_NUMBER>+<content hash>" in the built file.
-const BUILD_VERSION = "2026-10-21.game1-r22+f960885";
+const BUILD_VERSION = "2026-10-21.game1-r22+ac1505b";
 // Store builds set RELEASE=true to ignore every dev URL hook (?dev/?today/?level/?mode/?debug).
 // Keep false for QA builds that still need the exact-dev sandbox.
 const RELEASE = false;
@@ -10449,7 +10449,7 @@ function bindWinInputGuard() {
   const stepKey = () => [win.hidden, ...['rating', 'rating-after', 'pack-done'].map((c) => win.classList.contains(c)),
     ...[...win.querySelectorAll('button')].filter((b) => b.getClientRects().length).map((b) => b.id + ':' + b.textContent)].join('|');
   let key = stepKey();
-  new MutationObserver(() => { const k = stepKey(); if (k === key) return; key = k; if (!win.hidden) { shownAt = performance.now(); pressOk = false; keyGuard.arm('win'); requestAnimationFrame(fitWinRow); } })
+  new MutationObserver(() => { const k = stepKey(); if (k === key) return; key = k; if (!win.hidden) { shownAt = performance.now(); st.winGuardUntil = shownAt + WIN_INPUT_GUARD_MS; pressOk = false; keyGuard.arm('win'); requestAnimationFrame(fitWinRow); } })
     .observe(win, { attributes: true, attributeFilter: ['hidden', 'class'], subtree: true, childList: true, characterData: true });
   window.addEventListener('resize', () => { if (!win.hidden) fitWinRow(); });
   const early = () => win.hidden || performance.now() - shownAt < WIN_INPUT_GUARD_MS;
@@ -10600,7 +10600,21 @@ function init() {
     setMode('daily');
     if (!maybeSwitchToNewDaily('mode_switch')) startDaily(localDateKey(), 'mode_switch');
   });
-  $('win-share')?.addEventListener('click', () => { shareDailyResult(); });
+  // 1.0.7 rc (Chief, Oct 21): the centred card puts Share over the finished board, so a stray tap must not share twice.
+  // A pointer click shares only if its press started on Share after the card is armed (input guard + arm delay), and
+  // at most one share per SHARE_DEDUPE_MS. Keyboard / AT / programmatic activation is only de-duped.
+  const SHARE_DEDUPE_MS = 1000; let shareDownAt = -1, lastShareAt = -Infinity;
+  $('win-share')?.addEventListener('pointerdown', (e) => { shareDownAt = e.timeStamp || performance.now(); });
+  $('win-share')?.addEventListener('click', (e) => {
+    const now = performance.now();
+    if (!(e.detail === 0 && !e.pointerType)) {
+      const armedAt = Math.max(st.winGuardUntil || 0, st.winArmAt || 0);
+      const fresh = shareDownAt >= armedAt; shareDownAt = -1;
+      if (!fresh) return;
+    }
+    if (now - lastShareAt < SHARE_DEDUPE_MS) return;
+    lastShareAt = now; shareDailyResult();
+  });
   syncPlayChrome();
   syncNewDailyBadge();
 
