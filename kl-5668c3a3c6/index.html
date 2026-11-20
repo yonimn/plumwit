@@ -1,0 +1,482 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>prototype L1-26</title><!-- set from GAME_TITLE at boot -->
+<style>
+/* ===== THEME: every colour, radius, font, size and spacing lives here. Reskin = edit this block only. ===== */
+:root{
+ --kl-bg-1:#8A55C2; --kl-bg-2:#5E3594; --kl-bg-3:#3E2069;      /* page gradient, top -> bottom */
+ --kl-on-bg:#FFFFFF;                                          /* text on the page background */
+ --kl-ink:#1E1633; --kl-ink-soft:#4A3F66; --kl-ink-faint:#B3A9C4;
+ --kl-card:#FFFFFF; --kl-shadow:0 8px 24px rgba(30,22,51,.25); --kl-shadow-sm:0 3px 8px rgba(30,22,51,.2); --kl-shadow-accent:0 4px 12px rgba(0,0,0,.25);
+ --kl-accent:#FFC21F; --kl-accent-ink:#1E1633;                /* gold: primary action ONLY */
+ --kl-ghost:rgba(255,255,255,.16); --kl-scrim:rgba(30,22,51,.55);
+ --kl-cell-light:#F6F2FB; --kl-cell-dark:#CDBBE6;             /* light vs dark square: 1.6:1 (bishop shades must read) */
+ --kl-clue-dark:#E6DCF3;                                      /* clue tile sitting on a dark square */
+ --kl-clue:#FFFFFF; --kl-clue-border:#CFC3E0;
+ --kl-ok:#2E9E5B; --kl-ok-bg:#E9F7EE;
+ --kl-error:#D23B3B; --kl-error-bg:#FCE8E8; --kl-attack:#FFCFCF; --kl-clash:rgba(210,59,59,.22);
+ --kl-att-dot:rgba(62,32,105,.42);   /* attacked squares: a centre dot only, no fill, so light vs dark stays 1.6:1 */
+ --kl-preview:#5E3594;        /* would-be attacks while a square is held/hovered: a ring, no fill */
+ --kl-dot-min:6px; --kl-tap-ms:250; --kl-tap-move:10;   /* clue dot floor; quick-tap limits (read by JS) */
+ --kl-piece:#1E1633; --kl-piece-locked:#5E3594; --kl-hint-ring:#8A55C2;
+ --kl-tile:#F3EDFA; --kl-tile-locked:#ECE8F1;
+ --kl-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ --kl-radius-sm:6px; --kl-radius:12px; --kl-radius-lg:16px; --kl-radius-pill:999px;
+ --kl-space-1:4px; --kl-space-2:8px; --kl-space-3:12px; --kl-space-4:16px; --kl-space-5:24px;
+ --kl-tap:48px; --kl-board-gap:3px;
+ --kl-max:420px; --kl-mini:180px; --kl-mini-np:150px; --kl-pad-cta:30px; --kl-grid-cols:5; --kl-dialog:360px;
+ --kl-dot:8px; --kl-dot-clue:.24em; --kl-dot-gap:.1em; --kl-status-min:22px; --kl-tile-sm-min:13px;
+ --kl-fs-header:20px; --kl-fs-h2:18px; --kl-fs-body:14px; --kl-fs-ghost:14px; --kl-fs-ghost-round:18px;
+ --kl-fs-status:15px; --kl-fs-win:24px; --kl-fs-tray:30px; --kl-fs-primary:17px; --kl-fs-secondary:16px;
+ --kl-fs-hero-g:44px; --kl-fs-hero:24px; --kl-fs-sect:15px; --kl-fs-sect-pc:22px; --kl-fs-rng:13px;
+ --kl-fs-tile:19px; --kl-fs-tile-sm:11px; --kl-fs-foot:13px; --kl-fs-cnt:10px;
+ --kl-fs-intro-h:22px; --kl-fs-intro-p:16px; --kl-fs-mini-sq:28px; --kl-fs-clue-demo:24px;
+ --kl-fs-np-big:72px; --kl-fs-np-kick:13px; --kl-fs-np-h:24px; --kl-fs-np-p:17px; --kl-fs-done:16px;
+}
+/* ===== END THEME ===== */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:linear-gradient(180deg,var(--kl-bg-1) 0%,var(--kl-bg-2) 50%,var(--kl-bg-3) 100%);color:var(--kl-on-bg);font-family:var(--kl-font);display:flex;justify-content:center}
+button{font:inherit}
+#board,.sq,.tp,.tile,button{-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.screen{width:100%;max-width:var(--kl-max);height:100%;padding:var(--kl-space-3) var(--kl-space-3);display:none;flex-direction:column;align-items:center;gap:var(--kl-space-2);overflow-y:auto}
+.screen.on{display:flex}
+header{width:100%;display:flex;align-items:center;justify-content:space-between;gap:var(--kl-space-2);min-height:var(--kl-tap);padding-top:env(safe-area-inset-top);flex:none}
+header h1{margin:0;font-size:var(--kl-fs-header);font-weight:800;flex:1;text-align:center}
+.ghost{background:var(--kl-ghost);color:var(--kl-on-bg);border:0;border-radius:var(--kl-radius-pill);min-height:var(--kl-tap);padding:var(--kl-space-2) var(--kl-space-4);font-size:var(--kl-fs-ghost);font-weight:600;cursor:pointer}
+.ghost.round{width:var(--kl-tap);min-width:var(--kl-tap);height:var(--kl-tap);padding:0;font-size:var(--kl-fs-ghost-round);font-weight:800}
+.card{background:var(--kl-card);color:var(--kl-ink);border-radius:var(--kl-radius-lg);box-shadow:var(--kl-shadow);width:100%}
+.info{padding:var(--kl-space-2) var(--kl-space-4)}
+.info h2{margin:0 0 2px;font-size:var(--kl-fs-h2)}
+.info p{margin:0;font-size:var(--kl-fs-body);color:var(--kl-ink-soft)}
+.pc{color:var(--kl-piece);line-height:1;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.pc svg,.ico-svg{width:1em;height:1em;display:block;fill:currentColor}
+.pc svg .cut{fill:var(--kl-card);stroke:var(--kl-card)}
+#heroG .pc svg .cut,#doneG .pc svg .cut{fill:var(--kl-bg-2);stroke:var(--kl-bg-2)}
+.sq.clue{flex-direction:column;gap:.08em}
+.sq.clue .num{line-height:1;margin-bottom:.32em}
+.cd{display:flex;gap:var(--kl-dot-gap);justify-content:center;flex-wrap:wrap;line-height:0;position:absolute;left:8%;right:8%;bottom:7%}
+.cd i{width:max(var(--kl-dot-min),var(--kl-dot-clue));height:max(var(--kl-dot-min),var(--kl-dot-clue));border-radius:var(--kl-radius-pill);box-sizing:border-box;border:max(1.5px,.045em) solid currentColor;display:block}
+.cd i.f{background:currentColor}
+.cd i.x{background:var(--kl-error);border-color:var(--kl-error)}
+.cd .cdt{font-size:max(11px,.42em);line-height:1;font-weight:800;letter-spacing:.02em}
+.cd .cdt.x{color:var(--kl-error)}
+#dbgTag{position:fixed;top:2px;left:2px;z-index:9;font:700 9px/1 var(--kl-font);letter-spacing:.06em;padding:2px 4px;border-radius:3px;background:var(--kl-error);color:#fff;opacity:.85;pointer-events:none}
+:focus:not(:focus-visible){outline:none}
+:focus-visible{outline:3px solid var(--kl-hint-ring);outline-offset:3px}
+#board{display:grid;gap:var(--kl-board-gap);padding:var(--kl-space-1);width:min(100%,46vh);flex:none}
+.sq{aspect-ratio:1;border:0;border-radius:var(--kl-radius-sm);color:var(--kl-ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;background:var(--kl-cell-light);min-width:0;position:relative}
+.sq.dark{background:var(--kl-cell-dark)}
+.sq.clue{background:var(--kl-clue);box-shadow:inset 0 0 0 2.5px var(--kl-clue-border);font-weight:800;cursor:default}
+.sq.clue.dark{background:var(--kl-clue-dark)}
+.sq.clue.ok{box-shadow:inset 0 0 0 4px var(--kl-ok);color:var(--kl-ok);background:var(--kl-ok-bg)}            /* met: thick solid ring */
+.sq.clue.over{box-shadow:inset 0 0 0 2.5px var(--kl-error);color:var(--kl-error);background:var(--kl-error-bg);outline:2.5px dashed var(--kl-error);outline-offset:-7px} /* over: dashed inner ring */
+.sq.hit{background:var(--kl-attack);box-shadow:inset 0 0 0 3px var(--kl-error)}
+.sq.hit .pc{color:var(--kl-error)}
+.sq.att:not(.clue):not(.pv)::after{content:"";position:absolute;width:18%;height:18%;border-radius:var(--kl-radius-pill);background:var(--kl-att-dot)}
+.sq.pv:not(.clue)::after{content:"";position:absolute;width:34%;height:34%;border-radius:var(--kl-radius-pill);border:2.5px solid var(--kl-preview);box-sizing:border-box}
+.sq.clue.pv::before{content:"";position:absolute;top:8%;right:8%;width:20%;height:20%;border-radius:var(--kl-radius-pill);background:var(--kl-preview)}
+.sq.pvsrc .ghostpc{opacity:.45;color:var(--kl-preview);pointer-events:none}
+.sq .pc{pointer-events:none}
+.sq.clash:not(.clue){background-image:linear-gradient(var(--kl-clash),var(--kl-clash))}
+.sq.clash:not(.clue)::before{content:"";position:absolute;left:4%;right:4%;top:calc(50% - 1.5px);height:3px;border-radius:2px;background:var(--kl-error)}
+.sq.clash.cv::before{transform:rotate(90deg)}.sq.clash.cd1::before{left:-12%;right:-12%;transform:rotate(45deg)}.sq.clash.cd2::before{left:-12%;right:-12%;transform:rotate(-45deg)}
+.sq.locked{box-shadow:inset 0 0 0 3px var(--kl-hint-ring);cursor:default}
+.sq.locked .pc{color:var(--kl-piece-locked)}
+.sq.flash{animation:flash .9s ease-out 1}
+@keyframes flash{0%{transform:scale(1.18)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.sq.flash{animation:none}}
+#status{font-weight:700;font-size:var(--kl-fs-status);min-height:var(--kl-status-min);text-align:center;display:flex;align-items:center;justify-content:center;gap:var(--kl-space-1)}
+#status.win{font-size:var(--kl-fs-win)}
+#status.win .ico-svg{width:.85em;height:.85em;color:var(--kl-accent)}
+#tray{display:flex;gap:var(--kl-space-2);justify-content:center;min-height:var(--kl-tap);flex-wrap:wrap}
+.tp{width:var(--kl-tap);height:var(--kl-tap);border-radius:var(--kl-radius);border:0;background:var(--kl-card);font-size:var(--kl-fs-tray);cursor:pointer;box-shadow:var(--kl-shadow-sm);padding:0;display:flex;align-items:center;justify-content:center}
+.tp.sel{outline:3px solid var(--kl-on-bg);outline-offset:2px;transform:translateY(-3px)}
+.row{display:flex;gap:var(--kl-space-3);justify-content:center;align-items:center;margin-top:auto;padding-bottom:calc(var(--kl-space-2) + env(safe-area-inset-bottom));width:100%;flex:none}
+.primary{background:var(--kl-accent);color:var(--kl-accent-ink);border:0;border-radius:var(--kl-radius-pill);min-height:var(--kl-tap);padding:var(--kl-space-3) var(--kl-pad-cta);font-size:var(--kl-fs-primary);font-weight:800;cursor:pointer;box-shadow:var(--kl-shadow-accent)}
+.secondary{background:var(--kl-card);color:var(--kl-ink);border:0;border-radius:var(--kl-radius-pill);min-height:var(--kl-tap);padding:var(--kl-space-3) var(--kl-space-5);font-size:var(--kl-fs-secondary);font-weight:700;cursor:pointer;box-shadow:var(--kl-shadow-sm);display:inline-flex;align-items:center;justify-content:center;gap:var(--kl-space-2)}
+.secondary .ico-svg{width:1.15em;height:1.15em}
+.hidden{display:none!important}
+.hero{text-align:center;margin-top:var(--kl-space-1)}
+.hero .g{font-size:var(--kl-fs-hero-g);line-height:1;display:flex;justify-content:center;align-items:center;gap:var(--kl-space-2)}
+.hero h2{margin:var(--kl-space-1) 0 2px;font-size:var(--kl-fs-hero)}
+.hero p{margin:0;opacity:.85;font-size:var(--kl-fs-body)}
+.sect{padding:var(--kl-space-3) var(--kl-space-3) var(--kl-space-2)}
+.sect h3{margin:0 0 var(--kl-space-2) var(--kl-space-1);font-size:var(--kl-fs-sect);display:flex;align-items:center;gap:var(--kl-space-2)}
+.sect h3 .pc{font-size:var(--kl-fs-sect-pc)}
+.sect h3 span.rng{font-weight:600;color:var(--kl-ink-soft);font-size:var(--kl-fs-rng)}
+.grid{display:grid;grid-template-columns:repeat(var(--kl-grid-cols),1fr);gap:var(--kl-space-2)}
+.tile{aspect-ratio:1.15;border:0;border-radius:var(--kl-radius);background:var(--kl-tile);color:var(--kl-ink);font-size:var(--kl-fs-tile);font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0}
+.tile small{font-size:var(--kl-fs-tile-sm);font-weight:700;color:var(--kl-ok);min-height:var(--kl-tile-sm-min);display:flex;align-items:center;justify-content:center}
+.tile small .ico-svg{width:12px;height:12px}
+.tile.locked{background:var(--kl-tile-locked);color:var(--kl-ink-faint);cursor:default}
+.tile.locked small{color:var(--kl-ink-faint)}
+.foot{margin:0;font-size:var(--kl-fs-foot);opacity:.85;text-align:center}
+.hdr-spacer{width:var(--kl-tap);flex:none}
+/* intro */
+#intro .card{padding:var(--kl-space-5) var(--kl-space-4);text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--kl-space-3)}
+#intro h2{margin:0;font-size:var(--kl-fs-intro-h)}
+#intro p{margin:0;font-size:var(--kl-fs-intro-p);color:var(--kl-ink-soft);line-height:1.4}
+.mini{display:grid;gap:var(--kl-board-gap);width:var(--kl-mini)}
+.mini .sq{font-size:var(--kl-fs-mini-sq);cursor:default}
+.dots{display:flex;gap:var(--kl-space-2)}
+.dots i{width:var(--kl-dot);height:var(--kl-dot);border-radius:var(--kl-radius-pill);background:var(--kl-ghost)}
+.dots i.on{background:var(--kl-on-bg)}
+/* new-piece overlay */
+#newpiece,#confirm{position:fixed;inset:0;background:var(--kl-scrim);display:flex;align-items:center;justify-content:center;padding:var(--kl-space-5)}
+#newpiece .card,#confirm .card{max-width:var(--kl-dialog);padding:var(--kl-space-5);text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--kl-space-3)}
+#newpiece .big{font-size:var(--kl-fs-np-big)}
+#newpiece .kick{font-size:var(--kl-fs-np-kick);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--kl-ink-soft)}
+#newpiece h2{margin:0;font-size:var(--kl-fs-np-h)}
+#newpiece p,#confirm p{margin:0;font-size:var(--kl-fs-np-p);line-height:1.4}
+#newpiece .mini{width:var(--kl-mini-np)}
+#confirm .btns{display:flex;gap:var(--kl-space-3);justify-content:center;flex-wrap:wrap}
+#confirm .btns.yesfirst #cfYes{order:-1}
+#cfYes:disabled{opacity:.5}
+.sq.point{box-shadow:inset 0 0 0 4px var(--kl-preview);animation:klpoint 1.2s ease-in-out 3}
+@keyframes klpoint{50%{box-shadow:inset 0 0 0 7px var(--kl-preview)}}
+@media (prefers-reduced-motion:reduce){.sq.point{animation:none}}
+#done .card{padding:var(--kl-space-5);text-align:center;font-size:var(--kl-fs-done);line-height:1.45}
+#donehints{color:var(--kl-ink-soft);font-size:var(--kl-fs-body)}
+</style></head><body>
+<section class="screen" id="intro" aria-label="How to play">
+ <header><span></span><h1>How to play</h1><button class="ghost" id="skip">Skip</button></header>
+ <div class="card"><div class="mini" id="mini"></div><h2 id="ihead"></h2><p id="ibody"></p></div>
+ <div class="dots" id="dots"><i></i><i></i><i></i></div>
+ <div class="row"><button class="primary" id="inext">Next</button></div>
+</section>
+<section class="screen" id="select">
+ <header><span class="hdr-spacer"></span><div class="hero"><div class="g pc" style="color:inherit" id="heroG"></div><h2 id="gameTitle"></h2></div><button class="ghost round" id="help1" aria-label="How to play">?</button></header>
+ <div id="sections" style="width:100%;display:flex;flex-direction:column;gap:var(--kl-space-3)"></div>
+ <p class="foot" id="selfoot"></p>
+ <div class="row"><button class="primary" id="play">Play</button></div>
+</section>
+<section class="screen" id="game">
+ <header><button class="ghost" id="back">‹ Levels</button><h1 id="lvnum"></h1><button class="ghost round" id="help2" aria-label="How to play">?</button><button class="ghost" id="restart">Restart</button></header>
+ <div class="card info"><h2 id="title"></h2><p id="tip"></p></div>
+ <div class="card" id="board" role="grid"></div>
+ <div id="status" aria-live="polite"></div>
+ <div id="tray" aria-label="Tray"></div>
+ <div class="row">
+  <!-- Hint economy (c), locked by Chief 2026-11-20 (monetization/knight-lights-hint-ad-economy-2026-11-20.md):
+       L1-7 free + unlimited (each places a piece), never an ad. L8+: 1st hint free = "where to look" pointer (no piece);
+       wall levels (wall:true) get a 2nd free hint that places a piece; then the REWARDED-AD SPOT: Yes/No sheet,
+       reveal 2 pieces on walls, 1 elsewhere. Prototype shows "An ad would play here" and counts prog.adHints. No interstitials. -->
+  <button class="secondary" id="hint"><svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 3a7 7 0 0 0-4 12.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-1.3A7 7 0 0 0 12 3zm-2 17h4v1a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-1z"/></svg><span id="hintLabel">Hint</span></button>
+  <button class="primary hidden" id="next">Next</button>
+ </div>
+</section>
+<section class="screen" id="done">
+ <div class="hero" style="margin-top:var(--kl-space-5)"><div class="g pc" style="color:inherit" id="doneG"></div><h2>All 26 levels solved!</h2><p>Rook, bishop and knight: mastered.</p></div>
+ <div class="card">You've mastered the rook, the bishop and the knight. The <b>queen</b> is coming next: she attacks along rows, columns and diagonals, all at once.<br><span id="donehints"></span></div>
+ <div class="row"><button class="primary" id="toSelect">Back to levels</button></div>
+</section>
+<div id="newpiece" class="hidden" role="dialog" aria-modal="true" aria-labelledby="npName">
+ <div class="card"><div class="kick">New piece</div><h2 id="npName"></h2><div class="mini" id="npMini" aria-hidden="true"></div><p id="npTip"></p><button class="primary" id="npOk">Got it</button></div>
+</div>
+<div id="confirm" class="hidden" role="dialog" aria-modal="true" aria-labelledby="cfText">
+ <div class="card"><p id="cfText"></p><div class="btns"><button class="secondary" id="cfNo">Cancel</button><button class="primary" id="cfYes">OK</button></div></div>
+</div>
+<script>
+// ---- shared logic (mirrors /workspace/studio/concepts/kl_solver.py) ----
+// LEVELS is generated from concepts/knight-lights-L1-26.json by concepts/kl_inline_levels.py; do not hand-edit.
+const LEVELS=/*LEVELS*/[{"id":"KL-R01","title":"First Light","tip":"A rook attacks its whole row and column.","size":3,"pieces":{"R":1},"clues":{"0,0":1,"0,2":1},"solution":[[[0,1],"R"]]},{"id":"KL-R02","title":"See-Through Numbers","tip":"Numbers never hold pieces and never block a rook.","size":4,"pieces":{"R":1},"clues":{"0,1":1,"0,3":1,"2,0":1},"solution":[[[0,0],"R"]]},{"id":"KL-R03","title":"Two Rooks","tip":"Rooks may never share a row or column.","size":4,"pieces":{"R":2},"clues":{"0,3":2,"2,1":2},"solution":[[[0,1],"R"],[[2,3],"R"]]},{"id":"KL-R04","title":"Crossroads","tip":"A 2 sits where one rook's row meets another's column.","size":4,"pieces":{"R":2},"clues":{"1,2":2,"3,0":2},"solution":[[[1,0],"R"],[[3,2],"R"]]},{"id":"KL-R05","title":"Dark Lines","tip":"A 0 means no rook in that row or column.","size":5,"pieces":{"R":2},"clues":{"0,1":2,"2,4":0,"3,3":2},"solution":[[[0,3],"R"],[[3,1],"R"]]},{"id":"KL-R06","title":"Three Towers","tip":"Each 2 needs a rook in its row AND one in its column. The bottom row has two 2s: start there.","size":5,"pieces":{"R":3},"clues":{"0,4":2,"1,1":0,"2,0":2,"4,2":2,"4,4":2},"solution":[[[0,2],"R"],[[2,4],"R"],[[4,0],"R"]]},{"id":"KL-R07","title":"One or the Other","tip":"No zeros here. A 1 means a rook in its row OR its column, never both. Start with the 2s.","size":5,"pieces":{"R":4},"clues":{"0,1":2,"0,2":2,"1,0":2,"1,1":2,"1,2":2,"3,1":2,"0,3":1,"2,0":1},"solution":[[[0,0],"R"],[[1,4],"R"],[[3,2],"R"],[[4,1],"R"]]},{"id":"KL-R08","title":"Pair of Ones","tip":"Two 1s share a column. Try leaving that column empty: count the rows that would then need a rook.","size":5,"pieces":{"R":3},"clues":{"0,1":2,"0,4":2,"2,1":2,"3,3":1,"4,3":1},"solution":[[[0,3],"R"],[[1,1],"R"],[[2,4],"R"]],"wall":true,"hintFocus":"3,3","hintLine":"These two 1s share a column. What if that column had no rook?"},{"id":"KL-R09","title":"Big Board","tip":"Bigger board, same rules. Count rows and columns.","size":6,"pieces":{"R":4},"clues":{"0,1":2,"0,4":2,"1,4":2,"2,1":2,"2,4":2,"2,5":2,"0,3":1,"2,2":1,"3,0":1,"4,0":1,"3,2":0,"4,2":0},"solution":[[[0,5],"R"],[[1,1],"R"],[[2,0],"R"],[[5,4],"R"]]},{"id":"KL-R10","title":"Rook Master","tip":"Four rooks need exactly four rows and four columns. Look at each pair of 1s: what if its row had no rook?","size":6,"pieces":{"R":4},"clues":{"0,1":2,"0,3":2,"0,5":2,"2,1":2,"2,3":2,"5,3":2,"1,0":1,"1,2":1,"4,1":1,"4,3":1},"solution":[[[0,4],"R"],[[1,3],"R"],[[2,5],"R"],[[5,1],"R"]]},{"id":"KL-B11","title":"Slanted Light","tip":"A bishop attacks along its four diagonals, as far as it can see.","size":4,"pieces":{"B":1},"clues":{"0,0":1,"0,2":1},"solution":[[[1,1],"B"]]},{"id":"KL-B12","title":"Two Bishops","tip":"Bishops may never share a diagonal. A 2 is where two diagonals cross.","size":4,"pieces":{"B":2},"clues":{"0,0":1,"1,1":2,"1,3":0},"solution":[[[2,0],"B"],[[3,3],"B"]]},{"id":"KL-B13","title":"Dark Diagonals","tip":"A 0 means no bishop on either of its diagonals.","size":5,"pieces":{"B":2},"clues":{"0,3":1,"1,0":0,"2,3":2,"4,3":0},"solution":[[[1,2],"B"],[[4,1],"B"]]},{"id":"KL-B14","title":"Side by Side","tip":"Bishops side by side are safe: a bishop never attacks straight up, down, left or right.","size":5,"pieces":{"B":4},"clues":{"0,4":1,"1,0":2,"1,4":0,"4,2":0,"4,3":1,"4,4":0},"solution":[[[0,1],"B"],[[0,2],"B"],[[2,1],"B"],[[4,0],"B"]]},{"id":"KL-B15","title":"Two Colours","tip":"A bishop never leaves its square colour. Both 2s sit on dark squares: which two dark squares can see both?","size":5,"pieces":{"B":3},"clues":{"1,1":1,"1,2":2,"2,2":0,"3,1":1,"4,3":2,"1,4":0,"4,1":0},"solution":[[[2,0],"B"],[[2,1],"B"],[[3,4],"B"]]},{"id":"KL-B16","title":"Long Shots","tip":"Diagonals cross the whole board. Trace each one corner to corner.","size":6,"pieces":{"B":4},"clues":{"1,4":0,"0,2":1,"1,0":1,"1,3":2,"2,0":1,"2,2":2,"3,5":2,"4,3":0},"solution":[[[0,1],"B"],[[2,4],"B"],[[3,1],"B"],[[4,4],"B"]]},{"id":"KL-B17","title":"Crossfire","tip":"Top half: only one dark square lights three numbers and no 0. Start there, then do the light squares.","size":6,"pieces":{"B":5},"clues":{"0,0":0,"0,3":0,"1,3":2,"3,2":2,"3,4":1,"3,5":1,"4,0":2,"4,5":1,"5,3":1,"4,3":1},"solution":[[[0,2],"B"],[[1,0],"B"],[[2,3],"B"],[[3,1],"B"],[[5,1],"B"]],"wall":true,"hintFocus":"3,2","hintLine":"Start from this 2. Which dark square above it lights it and two more numbers, but no 0?"},{"id":"KL-B18","title":"Bishop Master","tip":"Clear every zero's diagonals first. Then solve one square colour at a time: 2 bishops on light squares, 4 on dark.","size":7,"pieces":{"B":6},"clues":{"0,0":0,"0,3":2,"0,4":1,"1,0":2,"1,4":2,"4,2":2,"4,4":1,"6,1":0,"6,3":1,"0,2":0,"4,0":0},"solution":[[[0,1],"B"],[[0,5],"B"],[[1,5],"B"],[[2,1],"B"],[[3,6],"B"],[[5,3],"B"]],"wall":true,"hintFocus":"4,0","hintLine":"Nothing may attack a 0. Clear this 0's diagonals, then the other zeros'."},{"id":"KL-N19","title":"The Jump","tip":"A knight jumps in an L: two squares one way, then one to the side.","size":4,"pieces":{"N":1},"clues":{"0,3":1,"3,2":1},"solution":[[[1,1],"N"]]},{"id":"KL-N20","title":"Leapfrog","tip":"Nothing blocks a knight: it jumps over pieces and numbers.","size":4,"pieces":{"N":2},"clues":{"0,3":0,"1,1":2,"1,3":1,"2,2":1},"solution":[[[3,0],"N"],[[3,2],"N"]]},{"id":"KL-N21","title":"No Landing","tip":"A 0 means no knight can land on it in one jump.","size":5,"pieces":{"N":2},"clues":{"1,1":1,"1,2":0,"2,2":1,"2,4":2},"solution":[[[3,2],"N"],[[4,3],"N"]]},{"id":"KL-N22","title":"Three Jumps","tip":"Numbers go higher now: a 3 means three knights jump onto it.","size":5,"pieces":{"N":3},"clues":{"2,1":1,"2,3":3,"3,0":2,"4,3":0,"4,4":0},"solution":[[[0,4],"N"],[[1,1],"N"],[[4,2],"N"]]},{"id":"KL-N23","title":"Corner Hops","tip":"Edges and corners have few jumps. Start where knights have little room.","size":5,"pieces":{"N":4},"clues":{"0,1":1,"0,3":0,"2,1":2,"2,3":3,"3,2":2,"4,1":1,"1,4":1},"solution":[[[0,2],"N"],[[2,0],"N"],[[4,2],"N"],[[4,4],"N"]]},{"id":"KL-N24","title":"Wide Open","tip":"Clear both zeros first. Then the 3 has only four landing squares left for three knights.","size":6,"pieces":{"N":4},"clues":{"2,4":1,"1,2":1,"1,4":0,"2,1":1,"3,1":3,"3,5":2,"4,2":2,"1,3":0,"3,3":0},"solution":[[[0,0],"N"],[[2,3],"N"],[[4,3],"N"],[[5,0],"N"]],"hintFocus":"3,1","hintLine":"After the zeros, this 3 has four landing squares left. Three are knights."},{"id":"KL-N25","title":"Full House","tip":"Look at the 4 and the lower 1. Which landing squares do they share?","size":6,"pieces":{"N":5},"clues":{"1,2":0,"2,3":2,"3,0":2,"3,2":3,"3,4":4,"4,1":1,"5,5":0,"0,1":1,"2,4":0},"solution":[[[1,3],"N"],[[1,5],"N"],[[4,2],"N"],[[5,1],"N"],[[5,3],"N"]],"hintFocus":"3,4","hintLine":"Count this 4's landing squares. The lower 1 can see two of them."},{"id":"KL-N26","title":"Knight Master","tip":"Clear the zeros. Then count what the 4 has left.","size":7,"pieces":{"N":6},"clues":{"2,4":0,"0,1":1,"0,5":1,"1,0":0,"2,1":1,"4,1":4,"4,3":2,"4,5":3,"5,2":3,"2,3":0,"4,4":0},"solution":[[[2,0],"N"],[[2,6],"N"],[[3,3],"N"],[[6,0],"N"],[[6,2],"N"],[[6,4],"N"]],"wall":true,"hintFocus":"4,1","hintLine":"After the zeros, this 4 has five landing squares left for four knights."}]/*END*/;
+// The game's name lives here ONLY (name may change, e.g. "Checkglow"). <title>, the level select and anything else read it.
+const GAME_TITLE="Knight Lights";
+const PIECE_NAME={R:"rook",B:"bishop",N:"knight",Q:"queen",K:"king"};
+const SECTIONS=[{t:"R",name:"Rook"},{t:"B",name:"Bishop"},{t:"N",name:"Knight"}];
+const DIRS={R:[[1,0],[-1,0],[0,1],[0,-1]],B:[[1,1],[1,-1],[-1,1],[-1,-1]]};DIRS.Q=DIRS.R.concat(DIRS.B);
+const KN=[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]];
+const KG=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+function attacks(t,r,c,n,occ){const out=[];
+  if(DIRS[t]){for(const[dr,dc]of DIRS[t]){let y=r+dr,x=c+dc;while(y>=0&&y<n&&x>=0&&x<n){out.push(y+","+x);if(occ[y+","+x])break;y+=dr;x+=dc;}}}
+  else for(const[dr,dc]of(t==="N"?KN:KG)){const y=r+dr,x=c+dc;if(y>=0&&y<n&&x>=0&&x<n)out.push(y+","+x);}
+  return out;}
+function evaluate(lv,placed){const n=lv.size,cnt={},hit=new Set();for(const k in lv.clues)cnt[k]=0;
+  for(const k in placed){const[r,c]=k.split(",").map(Number);for(const s of attacks(placed[k],r,c,n,placed)){
+    if(placed[s]){hit.add(s);hit.add(k);} if(s in cnt)cnt[s]++;}}
+  const need=Object.values(lv.pieces).reduce((a,b)=>a+b,0);
+  const solved=Object.keys(placed).length===need&&hit.size===0&&Object.keys(lv.clues).every(k=>cnt[k]===lv.clues[k]);
+  return{cnt,hit,solved};}
+const pieceType=lv=>Object.keys(lv.pieces)[0];
+const isFirstOfPiece=i=>i===0||pieceType(LEVELS[i])!==pieceType(LEVELS[i-1]);
+function isUnlocked(i,solvedIds,unlockAll){return !!unlockAll||i===0||solvedIds.has(LEVELS[i-1].id);}
+// Attack helpers for the always-on attack preview (L1-26).
+// attackSet: every square attacked by the placed pieces (pieces block lines, numbers don't).
+function attackSet(lv,placed){const out=new Set();for(const k in placed){const[r,c]=k.split(",").map(Number);for(const a of attacks(placed[k],r,c,lv.size,placed))out.add(a);}return out;}
+// previewAttacks: squares a piece of type t WOULD attack from empty square k, given what is already placed.
+function previewAttacks(lv,placed,t,k){const[r,c]=k.split(",").map(Number);return attacks(t,r,c,lv.size,placed);}
+// clashLines: squares strictly between two line pieces that attack each other -> {key: "h"|"v"|"d1"|"d2"}.
+function clashLines(lv,placed){const out={};for(const k in placed){const t=placed[k];if(!DIRS[t])continue;const[r,c]=k.split(",").map(Number);
+  for(const[dr,dc]of DIRS[t]){let y=r+dr,x=c+dc;const path=[];while(y>=0&&y<lv.size&&x>=0&&x<lv.size){const q=y+","+x;if(placed[q]){for(const p of path)out[p]=dr===0?"h":dc===0?"v":dr===dc?"d1":"d2";break;}path.push(q);y+=dr;x+=dc;}}}
+  return out;}
+// Clue dots under each number: filled = attacking now (up to the number), outline = still needed, red = too many.
+function clueDots(v,m){return{filled:Math.min(m,v),need:Math.max(v-m,0),over:Math.max(m-v,0)};}
+// More than 4 dots -> compact "have/need" text instead (e.g. "3/5").
+const DOT_MAX=4;function dotMode(v,m){return Math.max(v,m)>DOT_MAX?"text":"dots";}
+// Clash status text is piece-specific: only line pieces block.
+function clashText(t){const nm=PIECE_NAME[t];return t==="N"||t==="K"?"Red "+nm+"s attack each other. Move one of them.":"Red "+nm+"s attack each other. While they clash they also block lines, so numbers can drop.";}
+// Quick tap places; press-and-hold (or a drag) only previews.
+const TAP_MS=250,TAP_MOVE=10;function isQuickTap(ms,dist){return ms<TAP_MS&&dist<=TAP_MOVE;}
+// Bishop boards: attack dots for the focused (last placed / held) bishop only; other pieces: every placed piece.
+function attackMarks(lv,placed,focusKey){if(pieceType(lv)!=="B")return attackSet(lv,placed);if(!focusKey||!placed[focusKey])return new Set();
+  const[r,c]=focusKey.split(",").map(Number);return new Set(attacks(placed[focusKey],r,c,lv.size,placed));}
+// Clue state: a 0 stays neutral until the level is solved, and goes red the moment it is attacked.
+function clueState(v,m,solved){if(m>v)return"over";if(v===0)return solved?"ok":"";return m===v?"ok":"";}
+// Hint economy (c), Chief 2026-11-20. hs = this level's hint state {free:n, ad:n, point:bool}, saved with its board.
+//  "free"    L1-7: free and unlimited, places one correct piece, never an ad.
+//  "pointer" L8+, 1st hint: free "where to look": rings the key clue (lv.hintFocus, else auto) + one line. No piece.
+//  "piece"   wall levels (lv.wall) only, 2nd hint: free, places one correct piece.
+//  "ad"      after that: rewarded Yes/No; reveals adReveal(lv) pieces (2 on walls, 1 elsewhere). Counted in prog.adHints.
+const FREE_HINT_LEVELS=7;
+function hintKind(i,hs,lv){lv=lv||LEVELS[i];const f=(hs&&hs.free)||0;if(i<FREE_HINT_LEVELS)return"free";if(f===0)return"pointer";if(lv.wall&&f===1)return"piece";return"ad";}
+function adReveal(lv){return lv.wall?2:1;}
+// Pointer target: lv.hintFocus ("r,c", the tip's key clue) + lv.hintLine; auto fallback = the biggest number (first in reading order).
+function hintFocusOf(lv){const nm=PIECE_NAME[pieceType(lv)];let k=lv.hintFocus;
+  if(!k||!(k in lv.clues)){let best=-1;for(let r=0;r<lv.size;r++)for(let c=0;c<lv.size;c++){const q=r+","+c;if(q in lv.clues&&lv.clues[q]>best){best=lv.clues[q];k=q;}}}
+  const v=lv.clues[k],line=lv.hintFocus===k&&lv.hintLine?lv.hintLine:v===0?"Nothing may attack this 0. Clear its "+(pieceType(lv)==="N"?"landing squares":"lines")+" first.":"Look at this "+v+": which squares could a "+nm+" attack it from?";
+  return{k,line};}
+// Hint: reveal one solution piece not yet correctly placed; returns the move (or null when nothing to reveal).
+// First takes back (to the tray) every unlocked piece that shares a line / jump with the hinted square: a solution piece never
+// does, so those are wrong anyway and would otherwise leave the board redder than before. mv.removed lists them.
+// Mutates placed/tray/locked only after a source piece is found. Same-type pieces are interchangeable, so "correct" = right type on a solution square.
+function applyHint(lv,placed,tray,locked){
+  const mv=lv.solution.map(([p,t])=>({k:p.join(","),t})).find(m=>placed[m.k]!==m.t);
+  if(!mv)return null;
+  const[hr,hc]=mv.k.split(",").map(Number),hAtt=new Set(attacks(mv.t,hr,hc,lv.size,{}));
+  const clash=Object.keys(placed).filter(q=>q!==mv.k&&!locked.has(q)&&(hAtt.has(q)||(()=>{const[r,c]=q.split(",").map(Number);return attacks(placed[q],r,c,lv.size,{}).indexOf(mv.k)>=0;})()));
+  const freed=clash.map(q=>placed[q]).concat(placed[mv.k]?[placed[mv.k]]:[]);
+  const onTray=tray.indexOf(mv.t)>=0||freed.indexOf(mv.t)>=0;
+  let steal=null;
+  if(!onTray){const sol=new Set(lv.solution.filter(([,t])=>t===mv.t).map(([p])=>p.join(",")));
+    steal=Object.keys(placed).find(q=>placed[q]===mv.t&&!sol.has(q)&&!locked.has(q));
+    if(steal==null)return null;}
+  for(const q of clash){tray.push(placed[q]);delete placed[q];}
+  if(placed[mv.k]){tray.push(placed[mv.k]);delete placed[mv.k];}
+  if(!onTray){tray.push(placed[steal]);delete placed[steal];}
+  const i=tray.indexOf(mv.t);if(i<0)return null;
+  tray.splice(i,1);placed[mv.k]=mv.t;locked.add(mv.k);mv.removed=clash;return mv;}
+// Storage: "kl-progress-v1" = {solved:[ids], hints:n, hintsByLevel:{id:n}, introSeen:bool,
+//   boards:{levelId:{placed,locked,tray,t}|{cleared:true,t}}  (one board in progress PER LEVEL, newest BOARD_CAP kept; per id the newer t wins on merge,
+//          so a Restart/solve "cleared" tombstone is not resurrected by an older stored copy),
+//   boards[id].hs = that level's hint state {free,ad,point} (kept through Restart; dropped once solved),
+//   adHints:n (rewarded-ad placeholder views accepted)}. The p4 "freeChapterUsed" is dropped on load.
+// Migrates old "kl-rook-solved" (level indexes 0-9) and the p4 single-slot {board, boardT}.
+const STORE_KEY="kl-progress-v1",OLD_KEY="kl-rook-solved",BOARD_CAP=30;
+function emptyProgress(){return{solved:[],hints:0,hintsByLevel:{},introSeen:false,boards:{},adHints:0};}
+function capBoards(b){const ids=Object.keys(b);if(ids.length<=BOARD_CAP)return b;const keep=ids.sort((x,y)=>(b[y].t||0)-(b[x].t||0)).slice(0,BOARD_CAP);const o={};for(const k of keep)o[k]=b[k];return o;}
+function normalizeProgress(p){if(!p||typeof p!=="object")return emptyProgress();
+  const boards={};if(p.boards&&typeof p.boards==="object")for(const[k,v]of Object.entries(p.boards))if(v&&typeof v==="object")boards[k]={...v};
+  if(p.board&&typeof p.board==="object"&&p.board.id&&!boards[p.board.id]){const{id,...rest}=p.board;boards[id]={...rest,t:p.boardT||1};}
+  return{solved:Array.isArray(p.solved)?p.solved.slice():[],hints:p.hints||0,hintsByLevel:p.hintsByLevel&&typeof p.hintsByLevel==="object"?{...p.hintsByLevel}:{},introSeen:!!p.introSeen,
+    boards:capBoards(boards),adHints:p.adHints||0};}
+function mergeProgress(local,stored){const s=normalizeProgress(stored),l=normalizeProgress(local);
+  const solved=[...new Set(s.solved.concat(l.solved))];
+  const hints=Math.max(l.hints||0,s.hints||0);
+  const hintsByLevel={...s.hintsByLevel};
+  for(const[k,v]of Object.entries(l.hintsByLevel))hintsByLevel[k]=Math.max(hintsByLevel[k]||0,v||0);
+  const introSeen=!!(l.introSeen||s.introSeen);
+  const boards={};for(const k of new Set(Object.keys(s.boards).concat(Object.keys(l.boards)))){const a=l.boards[k],b=s.boards[k];boards[k]=!b?a:!a?b:((a.t||0)>=(b.t||0)?a:b);}
+  for(const id of solved)if(boards[id]&&!boards[id].cleared)boards[id]={cleared:true,t:boards[id].t||0};
+  const adHints=Math.max(l.adHints||0,s.adHints||0);
+  return{solved,hints,hintsByLevel,introSeen,boards:capBoards(boards),adHints};}
+// boardFor: the saved board for a level ({id,placed,locked,tray}) or null; setBoard(prog,id,null) leaves a "cleared" tombstone.
+function boardFor(prog,id){const b=prog&&prog.boards&&prog.boards[id];return b&&!b.cleared&&b.placed?{id,placed:b.placed,locked:b.locked||[],tray:b.tray||[],hs:b.hs?{...b.hs}:{free:0,ad:0}}:null;}
+function setBoard(prog,id,b,now){prog.boards=prog.boards||{};const t=now||Date.now();
+  prog.boards[id]=b?{placed:{...b.placed},locked:[...(b.locked||[])],tray:[...(b.tray||[])],...(b.hs&&(b.hs.free||b.hs.ad||b.hs.point)?{hs:{...b.hs}}:{}),t}:{cleared:true,t};prog.boards=capBoards(prog.boards);}
+function loadProgress(ls){let p=null;
+  try{p=JSON.parse(ls.getItem(STORE_KEY)||"null");}catch(e){}
+  if(!p||typeof p!=="object"){p=emptyProgress();
+    try{const old=JSON.parse(ls.getItem(OLD_KEY)||"[]");if(Array.isArray(old)){for(const i of old)if(LEVELS[i])p.solved.push(LEVELS[i].id);if(old.length)p.introSeen=true;}}catch(e){}
+    try{ls.setItem(STORE_KEY,JSON.stringify(p));}catch(e){}}
+  else p=normalizeProgress(p);
+  return p;}
+function saveProgress(ls,prog){try{let stored=null;try{stored=JSON.parse(ls.getItem(STORE_KEY)||"null");}catch(e){}
+    const merged=mergeProgress(prog,stored);
+    for(const k of["solved","hints","hintsByLevel","introSeen","boards","adHints"])prog[k]=merged[k];delete prog.board;delete prog.boardT;delete prog.freeChapterUsed;
+    ls.setItem(STORE_KEY,JSON.stringify(merged));}catch(e){}}
+function freshTray(lv){const tray=[];for(const p of"QRBNK")for(let j=0;j<(lv.pieces[p]||0);j++)tray.push(p);return tray;}
+function parseState(state,placed,tray){if(!state)return;for(const tok of state.split(",")){if(!tok)continue;const p=tok[0],[r,c]=tok.slice(1).split("-");const k=tray.indexOf(p);if(k>=0){tray.splice(k,1);placed[r+","+c]=p;}}}
+function initialBoard(lv,state,storedBoard){let placed={},tray=freshTray(lv),locked=new Set();
+  if(state){parseState(state,placed,tray);return{placed,tray,locked};}
+  if(storedBoard&&storedBoard.id===lv.id){placed={...storedBoard.placed};tray=[...storedBoard.tray];locked=new Set(storedBoard.locked||[]);return{placed,tray,locked};}
+  return{placed,tray,locked};}
+const KL_DEBUG = true; // set false / strip for release
+// true when a debug/review param is actually in the URL (shows the corner DEBUG tag)
+function debugUsed(search,debug){if(!debug)return false;const Q=typeof search==="string"?new URLSearchParams(search):search;return["unlock","level","screen","state","hint"].some(k=>Q.has(k));}
+function readDebugParams(search,debug){if(!debug)return{unlockAll:false,level:0,screen:null,state:null,hint:0};
+  const Q=typeof search==="string"?new URLSearchParams(search):search;
+  return{unlockAll:Q.get("unlock")==="all",level:+Q.get("level")||0,screen:Q.get("screen"),state:Q.get("state"),hint:+Q.get("hint")||0};}
+if(typeof module!=="undefined")module.exports={dotMode,clashText,isQuickTap,attackMarks,debugUsed,TAP_MS,BOARD_CAP,boardFor,setBoard,GAME_TITLE,attackSet,previewAttacks,clashLines,clueDots,clueState,hintKind,adReveal,hintFocusOf,FREE_HINT_LEVELS,attacks,evaluate,LEVELS,applyHint,isUnlocked,loadProgress,saveProgress,mergeProgress,STORE_KEY,OLD_KEY,isFirstOfPiece,KL_DEBUG,readDebugParams,initialBoard};
+// ---- UI ----
+if(typeof document!=="undefined"){
+// The ONE place pieces are drawn. Inline SVG silhouettes (fill currentColor) so Android WebView never shows empty glyph boxes.
+// Piece outlines based on Colin M.L. Burnett's public-domain chess figures (Wikimedia 'cburnett').
+const PIECE_SVG={
+ R:'<svg viewBox="0 0 45 45" class="kl-svg" aria-hidden="true" focusable="false"><g fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd" transform="translate(0,0.3)"><path stroke-linecap="butt" d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z"/><path stroke-linecap="butt" d="M 12.5,32 L 14,29.5 L 31,29.5 L 32.5,32 L 12.5,32 z"/><path stroke-linecap="butt" d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z"/><path stroke-linecap="butt" stroke-linejoin="miter" d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z"/><path stroke-linecap="butt" d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z"/><path stroke-linecap="butt" d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 11,14 z"/></g></svg>',
+ B:'<svg viewBox="0 0 45 45" class="kl-svg" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,0.6)"><g fill="currentColor" stroke="currentColor" stroke-linecap="butt"><path d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z"/><path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z"/><path d="M 25 8 A 2.5 2.5 0 1 1 20,8 A 2.5 2.5 0 1 1 25 8 z"/></g><path class="cut" d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18" fill="none" stroke-linejoin="miter"/></g></svg>',
+ N:'<svg viewBox="0 0 45 45" class="kl-svg" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd" transform="translate(0,0.3)"><path fill="currentColor" stroke="currentColor" d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"/><path fill="currentColor" stroke="currentColor" d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"/><path class="cut" d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"/><path class="cut" transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)" d="M 15 15.5 A 0.5 1.5 0 1 1 14,15.5 A 0.5 1.5 0 1 1 15 15.5 z"/></g></svg>',
+ Q:'<svg viewBox="0 0 45 45" class="kl-svg" aria-hidden="true" focusable="false"><g fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="butt" d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z"/><path d="m 9,26 c 0,2 1.5,2 2.5,4 1,1.5 1,1 0.5,3.5 -1.5,1 -1,2.5 -1,2.5 -1.5,1.5 0,2.5 0,2.5 6.5,1 16.5,1 23,0 0,0 1.5,-1 0,-2.5 0,0 0.5,-1.5 -1,-2.5 -0.5,-2.5 -0.5,-2 0.5,-3.5 1,-2 2.5,-2 2.5,-4 -8.5,-1.5 -18.5,-1.5 -27,0 z"/><path d="M 11.5,30 C 15,29 30,29 33.5,30"/><path d="m 12,33.5 c 6,-1 15,-1 21,0"/><circle cx="6" cy="12" r="2"/><circle cx="14" cy="9" r="2"/><circle cx="22.5" cy="8" r="2"/><circle cx="31" cy="9" r="2"/><circle cx="39" cy="12" r="2"/><path d="M 11,38.5 A 35,35 1 0 0 34,38.5" fill="none" stroke-linecap="butt"/></g></svg>',
+ K:'<svg viewBox="0 0 45 45" class="kl-svg" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"><path d="M 22.5,11.63 L 22.5,6" stroke-linejoin="miter"/><path fill="currentColor" stroke-linecap="butt" stroke-linejoin="miter" d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"/><path fill="currentColor" d="M 12.5,37 C 18,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 20,16 10.5,13 6.5,19.5 C 3.5,25.5 12.5,30 12.5,30 L 12.5,37"/><path d="M 20,8 L 25,8" stroke-linejoin="miter"/></g></svg>'
+};
+const ICO={
+ spark:'<svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2.2 13.9 9l6.9 1.1L13.9 13 12 19.8 10.1 13 3.2 10.1 10.1 9z"/></svg>',
+ check:'<svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.2 16.2 5.4 12.4 3.6 13.2 9.2 20 20.6 8.6 18.8 6.8z"/></svg>',
+ lock:'<svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 1 1 4 0v2h-4V7z"/></svg>'
+};
+function pieceHTML(t){return '<span class="pc pc-'+t+'" aria-hidden="true">'+(PIECE_SVG[t]||"")+'</span>';}
+const Q=new URLSearchParams(location.search),dbg=readDebugParams(Q,KL_DEBUG),unlockAll=dbg.unlockAll;
+const prog=loadProgress(localStorage);
+saveProgress(localStorage,prog); // re-read / merge on boot
+let solvedSet=new Set(prog.solved),cur=0,placed={},tray=[],sel=null,locked=new Set(),flashKey=null,introStep=0,introReturn="select",lastHint=false,suppressSave=false;
+function save(){if(suppressSave)return;saveProgress(localStorage,prog);solvedSet=new Set(prog.solved);}
+const unlocked=i=>isUnlocked(i,solvedSet,unlockAll);
+const $=id=>document.getElementById(id);
+const token=(name,fallback)=>{const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();return v||fallback;};
+document.title=GAME_TITLE+": prototype L1-26";
+if(debugUsed(location.search,KL_DEBUG)){const t=document.createElement("div");t.id="dbgTag";t.textContent="DEBUG";t.title="KL_DEBUG params in use (prototype only; release must set KL_DEBUG=false)";document.body.appendChild(t);}$("gameTitle").textContent=GAME_TITLE;
+$("heroG").innerHTML=pieceHTML("R")+pieceHTML("B")+pieceHTML("N");$("doneG").innerHTML=$("heroG").innerHTML;
+for(const id of["heroG","doneG"])for(const s of $(id).querySelectorAll(".pc"))s.style.color="inherit";
+function show(id){for(const s of document.querySelectorAll(".screen"))s.classList.toggle("on",s.id===id);}
+// -- shared square painter (game board, intro minis, new-piece diagrams) --
+// d: square element; ctx: {lv, placed, ev, att:Set, clash:{}, solved, locked:Set, flashKey}
+function paintSquare(d,k,r,c,ctx){const lv=ctx.lv,placed=ctx.placed;d.className="sq"+((r+c)%2?" dark":"");
+  if(k in lv.clues){const v=lv.clues[k],m=ctx.ev.cnt[k],st=clueState(v,m,ctx.solved),dt=clueDots(v,m);d.classList.add("clue");if(st)d.classList.add(st);
+    let dots="";for(let j=0;j<dt.filled;j++)dots+='<i class="f"></i>';for(let j=0;j<dt.need;j++)dots+='<i class="o"></i>';for(let j=0;j<dt.over;j++)dots+='<i class="x"></i>';
+    if(dotMode(v,m)==="text")dots='<span class="cdt'+(m>v?" x":"")+'">'+m+"/"+v+"</span>";
+    d.innerHTML='<span class="num">'+v+'</span><span class="cd" aria-hidden="true">'+dots+"</span>";
+    d.setAttribute("aria-label","number "+v+": attacked by "+m+(st==="ok"?", done":st==="over"?", too many":""));}
+  else if(placed[k]){d.innerHTML=pieceHTML(placed[k]);if(ctx.ev.hit.has(k))d.classList.add("hit");if(ctx.locked&&ctx.locked.has(k))d.classList.add("locked");if(k===ctx.flashKey)d.classList.add("flash");}
+  else{d.innerHTML="";if(ctx.att&&ctx.att.has(k))d.classList.add("att");}
+  if(ctx.pointKey===k)d.classList.add("point");
+  const cl=ctx.clash&&ctx.clash[k];if(cl&&!(k in lv.clues))d.classList.add("clash",cl==="h"?"ch":cl==="v"?"cv":cl==="d1"?"cd1":"cd2");}
+function miniBoard(host,lv,placed,opts){opts=opts||{};host.innerHTML="";host.style.gridTemplateColumns="repeat("+lv.size+",1fr)";
+  const ev=evaluate(lv,placed),ctx={lv,placed,ev,att:opts.noAtt?null:attackSet(lv,placed),clash:clashLines(lv,placed),solved:false};
+  for(let r=0;r<lv.size;r++)for(let c=0;c<lv.size;c++){const k=r+","+c,d=document.createElement("div");paintSquare(d,k,r,c,ctx);
+    if(k in lv.clues)d.style.fontSize=token("--kl-fs-clue-demo","24px");host.appendChild(d);}}
+// -- intro (3 taps max: Next, Next, Play) --
+const INTRO=[
+ {h:"Place every piece",b:"Tap a square to place a piece; tap it again to take it back. Hold a square to look before placing. A rook attacks its whole row and column: the lit squares (dots).",lv:{size:4,clues:{},pieces:{R:1}},pl:{"1,1":"R"}},
+ {h:"Numbers count attacks",b:"A number shows how many pieces attack it. Numbers never block. Dots under it: \u25CF attacking now, \u25CB still needed.",lv:{size:4,clues:{"0,1":1,"0,3":1,"2,0":2},pieces:{R:1}},pl:{"0,0":"R"}},
+ {h:"No piece attacks another",b:"Pieces in red attack each other. Use every piece and turn every number green to win!",lv:{size:4,clues:{"2,1":1},pieces:{R:2}},pl:{"0,0":"R","0,3":"R"}}];
+function renderIntro(){const s=INTRO[introStep];miniBoard($("mini"),s.lv,s.pl);
+  $("ihead").textContent=s.h;$("ibody").textContent=s.b;
+  [...$("dots").children].forEach((d,i)=>d.classList.toggle("on",i===introStep));
+  $("inext").textContent=introStep===INTRO.length-1?(introReturn==="game"?"Back to puzzle":"Play"):"Next";}
+function openIntro(ret){introStep=0;introReturn=ret;renderIntro();show("intro");}
+function closeIntro(){prog.introSeen=true;save();if(introReturn==="game")show("game");else if(introReturn==="select")showSelect();else playNext();}
+$("inext").onclick=()=>{if(introStep<INTRO.length-1){introStep++;renderIntro();}else closeIntro();};
+$("skip").onclick=closeIntro;$("help1").onclick=()=>openIntro("select");$("help2").onclick=()=>openIntro("game");
+// -- level select --
+function showSelect(){const host=$("sections");host.innerHTML="";
+  for(const S of SECTIONS){const idx=LEVELS.map((lv,i)=>i).filter(i=>pieceType(LEVELS[i])===S.t);if(!idx.length)continue;
+    const card=document.createElement("div");card.className="card sect";
+    card.innerHTML="<h3>"+pieceHTML(S.t)+S.name+' <span class="rng">Levels '+(idx[0]+1)+"–"+(idx[idx.length-1]+1)+"</span></h3>";
+    const g=document.createElement("div");g.className="grid";
+    for(const i of idx){const b=document.createElement("button"),done=solvedSet.has(LEVELS[i].id),open=unlocked(i);
+      b.className="tile"+(open?"":" locked");b.innerHTML=(i+1)+"<small>"+(done?ICO.check:open?"":ICO.lock)+"</small>";
+      b.setAttribute("aria-label","Level "+(i+1)+(done?" solved":open?"":" locked"));if(open)b.onclick=()=>start(i);g.appendChild(b);}
+    card.appendChild(g);host.appendChild(card);}
+  $("selfoot").textContent="Solve a level to unlock the next."+(prog.hints?" Hints used: "+prog.hints+".":"");
+  show("select");}
+function playNext(){let i=LEVELS.findIndex((lv,j)=>unlocked(j)&&!solvedSet.has(lv.id));start(i<0?0:i);}
+// -- in-page confirm (never window.confirm) --
+let cfAction=null;
+let cfStatus=null;
+// opts.ad: rewarded sheet order (question, Yes, No) and Yes only pressable >= 1 s after it opens (Tessellogic 1.0.3 §4 anti-double-fire)
+function askConfirm(text,yesLabel,action,noLabel,opts){opts=opts||{};cfAction=action;cfStatus={html:$("status").innerHTML,cls:$("status").className,note};$("cfText").textContent=text;$("cfYes").textContent=yesLabel;$("cfNo").textContent=noLabel||"Cancel";
+  $("confirm").querySelector(".btns").classList.toggle("yesfirst",!!opts.ad);const y=$("cfYes");y.disabled=!!opts.ad;if(opts.ad)setTimeout(()=>{y.disabled=false;},1000);
+  $("confirm").classList.remove("hidden");$("cfNo").focus();}
+function closeConfirm(){$("confirm").classList.add("hidden");cfAction=null;}
+// Cancel / No / Escape / scrim: put back exactly the status line that was showing when the dialog opened
+function cancelConfirm(){closeConfirm();if(cfStatus){$("status").innerHTML=cfStatus.html;$("status").className=cfStatus.cls;note=cfStatus.note;cfStatus=null;}}
+$("cfNo").onclick=cancelConfirm;$("cfYes").onclick=()=>{const a=cfAction;cfStatus=null;closeConfirm();if(a)a();};
+$("confirm").onclick=e=>{if(e.target===$("confirm"))cancelConfirm();};
+addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("confirm").classList.contains("hidden"))cancelConfirm();else if(!$("newpiece").classList.contains("hidden"))$("newpiece").classList.add("hidden");}});
+// -- new-piece popup: a small diagram of the moves, not the level tip again --
+const NEW_PIECE={B:"Moves along the diagonals, as far as it can see. It never goes straight up, down or sideways.",
+  N:"Jumps in an L: two squares one way, then one to the side. Nothing blocks a jump."};
+function showNewPiece(t){$("npName").textContent="The "+PIECE_NAME[t];$("npTip").textContent=NEW_PIECE[t]||"";
+  const pl={"2,2":t};miniBoard($("npMini"),{size:5,clues:{},pieces:{[t]:1}},pl);$("newpiece").classList.remove("hidden");$("npOk").focus();}
+$("npOk").onclick=()=>$("newpiece").classList.add("hidden");
+$("newpiece").onclick=e=>{if(e.target===$("newpiece"))$("newpiece").classList.add("hidden");};
+// -- game --
+let note="",hoverKey=null,focusKey=null,press=null,noteTimer=0,hs={free:0,ad:0};
+function flashNote(t){note=t;clearTimeout(noteTimer);noteTimer=setTimeout(()=>{if(note===t&&$("game").classList.contains("on")){note="";render();}},2500);}
+function start(i,state){cur=i;const lv=LEVELS[i],t=pieceType(lv);
+  const sb=boardFor(prog,lv.id);hs=sb?{...sb.hs}:{free:0,ad:0};
+  const init=initialBoard(lv,state,sb);placed=init.placed;tray=init.tray;sel=null;locked=init.locked;flashKey=null;note="";hoverKey=null;focusKey=null;press=null;
+  $("lvnum").textContent="Level "+(i+1);$("title").textContent=lv.title;$("tip").textContent=lv.tip;show("game");render();
+  // new-piece popup at the first level of bishop and knight (the rook is taught by the intro)
+  const restoring=!!(!state&&Object.keys(init.placed).length);
+  if(i>0&&isFirstOfPiece(i)&&!solvedSet.has(lv.id)&&!state&&!restoring)showNewPiece(t);}
+function persistBoard(lv,ev){const was=boardFor(prog,lv.id);
+  const has=!ev.solved&&(Object.keys(placed).length>0||locked.size>0||hs.free>0||hs.ad>0);
+  const now=has?{id:lv.id,placed:{...placed},locked:[...locked],tray:[...tray],hs:{free:0,ad:0,...hs}}:null;
+  if(JSON.stringify(now)!==JSON.stringify(was&&{...was,hs:{free:0,ad:0,...was.hs}}))setBoard(prog,lv.id,now);}
+// would-be attacks of the next tray piece from square k (press-and-hold on touch, hover with a mouse); classes only, no re-render
+function setPreview(k,force){if(k===hoverKey&&k!=null&&!force)return;const b=$("board");for(const e of b.querySelectorAll(".pv,.pvsrc")){e.classList.remove("pv","pvsrc");const g=e.querySelector(".ghostpc");if(g)g.remove();}
+  hoverKey=k;const lv=LEVELS[cur];if(k==null||!tray.length||placed[k]||k in lv.clues||evaluate(lv,placed).solved)return;
+  const t=tray[sel!==null?sel:0],n=lv.size,cell=(q)=>b.children[+q.split(",")[0]*n+(+q.split(",")[1])];
+  for(const q of previewAttacks(lv,placed,t,k))if(!placed[q])cell(q).classList.add("pv");
+  const src=cell(k);src.classList.add("pvsrc");src.insertAdjacentHTML("beforeend",pieceHTML(t).replace('class="pc ','class="pc ghostpc '));}
+function applyMarks(){const lv=LEVELS[cur],b=$("board"),att=attackMarks(lv,placed,focusKey);
+  for(let i=0;i<b.children.length;i++){const k=Math.floor(i/lv.size)+","+(i%lv.size),e=b.children[i];e.classList.toggle("att",att.has(k)&&!placed[k]&&!(k in lv.clues));}}
+function hintLabel(){const k=hintKind(cur,hs);return k==="free"?"Hint":k==="pointer"?"Hint \u00B7 free":k==="piece"?"Hint \u00B7 1 more free":"Hint \u00B7 watch ad";}
+function render(){const lv=LEVELS[cur],n=lv.size,ev=evaluate(lv,placed),b=$("board"),nm=PIECE_NAME[pieceType(lv)];b.innerHTML="";
+  b.style.gridTemplateColumns="repeat("+n+",1fr)";const fs=Math.round((b.getBoundingClientRect().width||300)/n*.56);
+  const ctx={lv,placed,ev,att:attackMarks(lv,placed,focusKey),clash:clashLines(lv,placed),solved:ev.solved,locked,flashKey,pointKey:hs.point&&!ev.solved?hintFocusOf(lv).k:null};
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){const k=r+","+c,d=document.createElement("button");paintSquare(d,k,r,c,ctx);d.style.fontSize=fs+"px";
+    if(k in lv.clues){d.style.fontSize=Math.round(fs*.72)+"px";d.tabIndex=-1;}
+    else{d.setAttribute("aria-label",placed[k]?PIECE_NAME[placed[k]]+" at "+k+(locked.has(k)?" (hint, stays put)":""):"empty "+k);
+      // Quick tap places/removes. Press-and-hold (>= TAP_MS) or a drag only LOOKS: preview on empty squares, attack dots of a held bishop.
+      d.onpointerenter=e=>{if(e.pointerType==="mouse"&&!placed[k])setPreview(k);};
+      d.onpointerdown=e=>{press={k,t:performance.now(),x:e.clientX,y:e.clientY,held:false};if(!placed[k])setPreview(k);else if(pieceType(lv)==="B"){focusKey=k;applyMarks();}};
+      d.onpointerup=e=>{if(press&&press.k===k){press.held=!isQuickTap(performance.now()-press.t,Math.hypot(e.clientX-press.x,e.clientY-press.y));if(press.held&&e.pointerType!=="mouse")setPreview(null);}};
+      d.onpointerleave=d.onpointercancel=e=>{if(hoverKey===k&&(e.type==="pointercancel"||e.pointerType==="mouse"||!press))setPreview(null);};
+      d.onclick=()=>{const held=press&&press.k===k&&press.held;press=null;if(ev.solved)return;
+        if(held){flashNote("Just looking. Tap quickly to place.");render();return;}
+        if(locked.has(k)){flashNote("Hint pieces stay put.");render();return;}note="";flashKey=null;
+        if(placed[k]){tray.push(placed[k]);delete placed[k];sel=null;if(focusKey===k)focusKey=null;}else{if(sel===null&&tray.length)sel=0;if(sel!==null){placed[k]=tray.splice(sel,1)[0];sel=null;focusKey=k;}}render();};}
+    b.appendChild(d);}
+  const tr=$("tray");tr.innerHTML="";tray.forEach((t,i)=>{const p=document.createElement("button");p.className="tp"+(i===sel?" sel":"");p.innerHTML=pieceHTML(t);
+    p.setAttribute("aria-label",PIECE_NAME[t]);p.onclick=()=>{sel=sel===i?null:i;note="";render();};tr.appendChild(p);});
+  if(ev.solved&&!solvedSet.has(lv.id)){solvedSet.add(lv.id);prog.solved=[...solvedSet];}
+  persistBoard(lv,ev);save();
+  const st=$("status");st.className=ev.solved?"win":"";
+  if(ev.solved)st.innerHTML="Solved! "+ICO.spark;
+  else st.textContent=note?note:ev.hit.size?clashText(pieceType(lv)):
+    tray.length?(sel!==null?"Now tap a square for this "+nm+".":"Tap a square to place a "+nm+". Tap a "+nm+" again to take it back."):"All placed: check the numbers.";
+  $("next").classList.toggle("hidden",!ev.solved);$("hint").classList.toggle("hidden",ev.solved);$("hintLabel").textContent=hintLabel();
+  $("next").textContent=cur===LEVELS.length-1?"Finish":"Next";
+  if(hoverKey&&!placed[hoverKey])setPreview(hoverKey,true);else hoverKey=null;}
+function hint(){const lv=LEVELS[cur];if(evaluate(lv,placed).solved)return;const kind=hintKind(cur,hs);
+  // Rewarded placeholder: always player-started Yes/No, never auto-plays. The real build plays kl_rewarded_hint / kl_rewarded_reveal2 on Yes.
+  if(kind==="ad"){const n=adReveal(lv);askConfirm("An ad would play here. Watch it to "+(n>1?"reveal 2 pieces?":"get a hint?"),"Yes",()=>grantHint("ad"),"No",{ad:true});}
+  else grantHint(kind);}
+function placeHints(lv,n){let mv=null,removed=0,got=0;for(let h=0;h<n;h++){if(evaluate(lv,placed).solved)break;const m=applyHint(lv,placed,tray,locked);if(!m)break;mv=m;got++;removed+=m.removed.length;}return{mv,got,removed};}
+function grantHint(kind){const lv=LEVELS[cur];if(evaluate(lv,placed).solved)return;const nm=PIECE_NAME[pieceType(lv)];
+  if(kind==="pointer"){const f=hintFocusOf(lv);hs={...hs,free:(hs.free||0)+1,point:true};note="Look here: "+f.line;}
+  else{const r=placeHints(lv,kind==="ad"?adReveal(lv):1);if(!r.got)return;sel=null;flashKey=r.mv.k;focusKey=r.mv.k;
+    if(kind==="ad"){hs={...hs,ad:(hs.ad||0)+1};prog.adHints=(prog.adHints||0)+1;}else hs={...hs,free:(hs.free||0)+1};
+    note=(r.got>1?"Hint: these "+r.got+" "+nm+"s are right, so they stay put.":"Hint: this "+nm+" is right, so it stays put.")+(r.removed?" Took back "+r.removed+" clashing "+nm+(r.removed>1?"s":"")+".":"");}
+  hoverKey=null;prog.hints=(prog.hints||0)+1;prog.hintsByLevel=prog.hintsByLevel||{};prog.hintsByLevel[lv.id]=(prog.hintsByLevel[lv.id]||0)+1;render();}
+function applyDebugHints(k){for(let h=k;h>0;h--){const lv=LEVELS[cur];if(evaluate(lv,placed).solved)break;const mv=applyHint(lv,placed,tray,locked);if(!mv)break;sel=null;flashKey=mv.k;
+  note="Hint: this "+PIECE_NAME[pieceType(lv)]+" is right, so it stays put."+(mv.removed.length?" Took back "+mv.removed.length+" clashing piece"+(mv.removed.length>1?"s":"")+".":"");}render();}
+$("hint").onclick=hint; // REWARDED-AD SPOT: the "ad" branch of hint(); no interstitials anywhere in the prototype.
+function showDone(){$("donehints").textContent=prog.hints?"Hints used: "+prog.hints+".":"No hints used!";show("done");}
+$("next").onclick=()=>cur+1<LEVELS.length?start(cur+1):showDone();
+// Restart clears the pieces but keeps this level's hint state (a Restart never refills free hints)
+function doRestart(){const lv=LEVELS[cur];locked=new Set();if(boardFor(prog,lv.id)){setBoard(prog,lv.id,hs.free||hs.ad?{placed:{},locked:[],tray:freshTray(lv),hs}:null);save();}start(cur);}
+$("restart").onclick=()=>{if(Object.keys(placed).length&&!evaluate(LEVELS[cur],placed).solved)askConfirm("Clear the board and start this level again?","Restart",doRestart);else doRestart();};
+// '‹ Levels' never loses work: every level's board in progress is saved (prog.boards[id]) and comes back when you reopen it.
+$("back").onclick=showSelect;$("toSelect").onclick=showSelect;$("play").onclick=playNext;
+// debug/review params are read only when KL_DEBUG is true (see readDebugParams). Debug setup never calls save() or counts hints.
+suppressSave=true;
+if(dbg.screen==="intro")openIntro("select");else if(dbg.screen==="done")showDone();else if(dbg.screen==="select")showSelect();
+else if(dbg.level>=1&&dbg.level<=LEVELS.length&&unlocked(dbg.level-1)){start(dbg.level-1,dbg.state);if(dbg.hint)applyDebugHints(dbg.hint);}
+else if(!prog.introSeen)openIntro("play");else showSelect();
+suppressSave=false;
+addEventListener("resize",()=>{if($("game").classList.contains("on"))render();});
+addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible")return;save();if($("select").classList.contains("on"))showSelect();});}
+</script></body></html>
