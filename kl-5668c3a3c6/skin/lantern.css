@@ -1,0 +1,83 @@
+/* Knight Lights — Lantern Night skin for prototypes/knight-lights (Artist, Nov 20 2026).
+   Load AFTER the prototype's <style> block. Only selectors that already exist in the prototype are used,
+   plus #titlescreen (new title screen) and .kl-* classes from win.js. Colours come from palette.css. */
+body{background:radial-gradient(120% 55% at 50% 42%,color-mix(in srgb,var(--kl-bg-glow) 60%,transparent) 0%,transparent 62%),linear-gradient(180deg,var(--kl-bg-1) 0%,var(--kl-bg-2) 50%,var(--kl-bg-3) 100%);font-weight:600}
+header h1,.info h2,.hero h2,#intro h2,#newpiece h2,#done h2{font-family:var(--kl-font-display);font-weight:650;letter-spacing:.005em}
+header h1{font-size:22px}
+.ghost{box-shadow:inset 0 0 0 1.5px var(--kl-card-edge);font-weight:800}
+.card{box-shadow:inset 0 0 0 1.5px var(--kl-card-edge),var(--kl-shadow)}
+.info{background:linear-gradient(90deg,#2B2119,#22262A);box-shadow:inset 0 0 0 1px #5A4430}
+.info h2{color:var(--kl-lit)}
+/* ---- board: walnut frame + brass inlay ---- */
+#board{background:linear-gradient(155deg,var(--kl-frame-hi),var(--kl-frame) 45%,#24160D);padding:9px;border-radius:18px;
+  box-shadow:0 0 0 2px #24160D,inset 0 0 0 2px var(--kl-brass),0 18px 40px rgba(0,0,0,.55),0 0 60px rgba(255,159,46,.10)}
+.mini{background:linear-gradient(155deg,var(--kl-frame-hi),var(--kl-frame));padding:6px;border-radius:12px;box-shadow:inset 0 0 0 1.5px var(--kl-brass)}
+/* squares stay FLAT colours (no grain): keeps the measured 2.73:1 light/dark contrast exact and the attack marks fill-free */
+.sq{border-radius:var(--kl-radius-sm)}
+.sq .pc svg{width:1.3em;height:1.3em;filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.45))}
+/* ---- clue medallions: 3 states that differ by SHAPE/OUTLINE, not only colour ---- */
+.sq.clue,.sq.clue.dark{background:radial-gradient(circle at 50% 35%,#3A2A1C,var(--kl-clue) 72%);color:var(--kl-clue-ink);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.6),inset 0 0 0 2px var(--kl-clue-border);border-radius:12px;font-family:var(--kl-font);font-weight:900}
+/* met: lit lantern = amber fill, solid double rim (ink + gold) and a check notch in the top-right corner */
+.sq.clue.ok{background:radial-gradient(circle at 50% 40%,#FFF1C9,var(--kl-ok-bg) 55%,#F4B24E);color:var(--kl-ok-ink);
+  box-shadow:inset 0 0 0 2px #2A1407,inset 0 0 0 4.5px #FFE7A8,0 0 14px 4px rgba(255,159,46,.55);outline:none;z-index:1}
+.sq.clue.ok::after{content:"";position:absolute;top:-4px;right:-4px;width:38%;height:38%;min-width:16px;min-height:16px;border-radius:50%;
+  background:#2A1407 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23FFD98A' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/78% no-repeat;
+  box-shadow:0 0 0 2px #FFE7A8}
+/* over: ember red, DASHED red outline + notched corners via the dashed ring; dots for the extra attackers are diamonds */
+.sq.clue.over{background:radial-gradient(circle at 50% 40%,#7A2418,var(--kl-error-bg));color:var(--kl-error-ink);
+  box-shadow:inset 0 0 0 2px #24160D,0 0 12px 3px rgba(255,90,60,.45);outline:3px dashed var(--kl-error);outline-offset:-2px}
+/* have/need dots (replace the old corner number): filled = attacking now, hollow = still needed, red diamond = one too many */
+.sq.clue .num{text-shadow:0 1px 0 rgba(0,0,0,.35)}
+.sq.clue.ok .num{text-shadow:none}
+.cd i{border-color:currentColor;opacity:.95}
+.cd i.f{background:currentColor}
+.cd i.x{background:var(--kl-error);border:1.5px solid #FFE1D6;border-radius:2px;transform:rotate(45deg) scale(.9)}
+.cd .cdt.x{color:#FFB3A3}
+/* ---- attack marks (latest prototype rules: dots + rings, NO fill) ---- */
+.sq.att:not(.clue):not(.pv)::after{width:22%;height:22%;background:var(--kl-att-dot);box-shadow:0 0 0 2px var(--kl-att-edge),0 0 8px 2px rgba(255,181,77,.55)}
+.sq.pv:not(.clue)::after{width:44%;height:44%;border:3px solid var(--kl-preview);box-shadow:0 0 0 1.5px var(--kl-preview-edge),inset 0 0 0 1.5px var(--kl-preview-edge),0 0 10px rgba(255,217,138,.6)}
+/* a clue the held/hovered piece WOULD hit: small hollow ring in the top-LEFT corner (top-right is the met check) */
+.sq.clue.pv::before{top:6%;left:6%;right:auto;width:24%;height:24%;background:transparent;border:2.5px solid var(--kl-preview);box-shadow:0 0 0 1.5px var(--kl-preview-edge);box-sizing:border-box}
+.sq.pvsrc .ghostpc{opacity:.55;filter:drop-shadow(0 0 6px rgba(255,217,138,.9))}
+/* clashing pieces: red ring + red line through the squares between them */
+.sq.hit{background:var(--kl-cell-light);box-shadow:inset 0 0 0 3.5px var(--kl-error),0 0 12px 2px rgba(255,90,60,.6)}
+.sq.hit.dark{background:var(--kl-cell-dark)}
+.sq.clash:not(.clue)::before{height:4px;top:calc(50% - 2px);box-shadow:0 0 0 1.5px var(--kl-att-edge)}
+/* hint pieces = moonlight teal ring (never amber, so it can't be confused with "lit") */
+.sq.locked{box-shadow:inset 0 0 0 3px var(--kl-hint-ring),0 0 10px rgba(143,214,232,.5)}
+.sq.point{box-shadow:inset 0 0 0 4px var(--kl-hint-ring),0 0 0 2px var(--kl-hint-ring)}
+@keyframes klpoint{50%{box-shadow:inset 0 0 0 7px var(--kl-hint-ring),0 0 0 2px var(--kl-hint-ring)}}
+/* ---- tray, buttons ---- */
+#status{color:var(--kl-on-bg)}
+.tp{background:linear-gradient(#2A3136,var(--kl-card));box-shadow:inset 0 0 0 1.5px var(--kl-card-edge),var(--kl-shadow-sm)}
+.tp .pc svg{width:1.05em;height:1.05em}
+.tp.sel{outline:3px solid var(--kl-lit);box-shadow:inset 0 0 0 1.5px var(--kl-card-edge),0 0 16px rgba(255,181,77,.5)}
+.primary{background:linear-gradient(#FFC27A,var(--kl-accent) 60%,#D9823A);font-weight:900}
+.secondary{background:var(--kl-card);color:var(--kl-ink);box-shadow:inset 0 0 0 1.5px var(--kl-card-edge),var(--kl-shadow-sm)}
+#hint{box-shadow:inset 0 0 0 2px var(--kl-brass),var(--kl-shadow-sm)}
+/* ---- level select ---- */
+.sect h3{color:var(--kl-ink)}
+.sect h3 .pc svg{width:1.1em;height:1.1em}
+.tile{box-shadow:inset 0 0 0 1.5px var(--kl-card-edge);font-family:var(--kl-font);font-weight:900}
+.tile small{color:var(--kl-ok)}
+.tile.locked{box-shadow:none}
+.dots i.on{background:var(--kl-lit)}
+.hero h2{color:var(--kl-lit);text-shadow:0 0 14px rgba(255,159,46,.6)}
+/* ---- title screen (new #titlescreen section) ---- */
+#titlescreen{justify-content:flex-start;padding-top:56px;position:relative;text-align:center}
+#titlescreen .halo{position:absolute;top:10px;left:50%;width:340px;height:340px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,181,77,.42) 0%,rgba(255,159,46,.14) 45%,transparent 70%);pointer-events:none}
+#titlescreen .lantern{position:relative;width:150px;height:212px;filter:drop-shadow(0 0 26px rgba(255,159,46,.55))}
+#titlescreen .kl-name{margin:18px 0 0;font-family:var(--kl-font-display);line-height:.92;color:var(--kl-on-bg);max-width:100%}
+#titlescreen .kl-name .w{display:block;font-weight:600;font-size:52px}
+#titlescreen .kl-name .w.glow{font-weight:800;font-style:italic;font-size:64px;color:var(--kl-lit);text-shadow:0 0 22px rgba(255,159,46,.8),0 0 4px var(--kl-lit)}
+#titlescreen .strap{margin:12px 0 0;color:var(--kl-ink-soft);font-weight:700;font-size:15px}
+#titlescreen .btns{display:flex;flex-direction:column;gap:14px;align-items:center;margin-top:34px}
+#titlescreen .btns button{min-width:220px;min-height:52px}
+#titlescreen .by{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:0;right:0;margin:0;font-size:12px;letter-spacing:.08em;color:var(--kl-ink-soft);font-weight:700}
+.kl-flame{transform-origin:60px 112px;animation:klFlicker 2.6s ease-in-out infinite}
+@keyframes klFlicker{0%,100%{transform:scale(1,1)}30%{transform:scale(.96,1.04)}60%{transform:scale(1.03,.97)}}
+@media (prefers-reduced-motion:reduce){.kl-flame{animation:none}}
+
+/* 7x7 boards at 360px: thinner frame so squares stay >=44px (tap target floor) */
+#board:has(> .sq:nth-child(49)){padding:5px;border-radius:14px}

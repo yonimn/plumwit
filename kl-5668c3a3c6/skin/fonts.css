@@ -1,0 +1,4 @@
+/* Bundled OFL fonts (no CDN). Paths are relative to this file: keep fonts/ next to it. */
+@font-face{font-family:"Fraunces";src:url(fonts/Fraunces-Soft-latin.woff2) format("woff2");font-weight:500 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Fraunces";src:url(fonts/Fraunces-Soft-Italic-latin.woff2) format("woff2");font-weight:500 800;font-style:italic;font-display:swap}
+@font-face{font-family:"Nunito";src:url(fonts/Nunito-VF-latin.woff2) format("woff2");font-weight:200 1000;font-style:normal;font-display:swap}

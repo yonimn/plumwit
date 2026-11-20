@@ -1,0 +1,51 @@
+/* Knight Lights — win moment "All lanterns lit" (Artist, Nov 20 2026). CSS + win.js only, no canvas/images.
+   Timeline (default): 0 ms last piece placed -> clue lanterns flare in a ripple outward from that piece (~1.0 s, any board size)
+   -> warm board glow (+300 ms) -> banner with Next (+250 ms). Total ~1.55 s + 0.4 s banner slide.
+   Every animated element reads its start from a CSS var, so the whole sequence can be frozen at any time t
+   for storyboards/tests: set --kl-t:<ms> and --kl-play:paused on <html> (win.js does it for window.KL_WIN_FREEZE). */
+:root{--kl-t:0ms;--kl-play:running}
+.kl-win .sq{animation-play-state:var(--kl-play)}
+/* hide attack marks once solved so the lights read clean */
+.kl-win .sq.att::after,.kl-win .sq.pv::after{display:none}
+/* 1) each clue lantern flares at its ripple delay, then stays brighter than a normal "met" */
+.kl-win .sq.clue.kl-wl{animation:klFlare 520ms cubic-bezier(.2,.9,.3,1.2) both;animation-delay:calc(var(--kl-wd,0ms) - var(--kl-t));animation-play-state:var(--kl-play)}
+@keyframes klFlare{
+ 0%  {transform:scale(1);filter:brightness(1)}
+ 35% {transform:scale(1.16);filter:brightness(1.35) saturate(1.1);box-shadow:inset 0 0 0 2px #2A1407,inset 0 0 0 4.5px #FFF6DC,0 0 26px 10px rgba(255,200,110,.95)}
+ 100%{transform:scale(1);filter:brightness(1.08);box-shadow:inset 0 0 0 2px #2A1407,inset 0 0 0 4.5px #FFE7A8,0 0 18px 6px rgba(255,159,46,.75)}}
+/* empty squares get a quick warm sheen as the ripple passes (sold-out "wave of light") */
+.kl-win .sq.kl-ws:not(.clue)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle,rgba(255,226,160,.75),rgba(255,181,77,0) 70%);opacity:0;width:auto;height:auto;box-shadow:none;display:block;
+  animation:klSheen 600ms ease-out both;animation-delay:calc(var(--kl-wd,0ms) - var(--kl-t));animation-play-state:var(--kl-play)}
+@keyframes klSheen{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+/* pieces warm up as the light reaches them */
+.kl-win .sq.kl-ws .pc svg{animation:klWarm 600ms ease-out both;animation-delay:calc(var(--kl-wd,0ms) - var(--kl-t));animation-play-state:var(--kl-play)}
+@keyframes klWarm{to{filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.45)) drop-shadow(0 0 7px rgba(255,190,90,.9))}}
+/* 2) warm board glow */
+#board.kl-win{animation:klBoardGlow 700ms ease-out both;animation-delay:calc(var(--kl-gd,1200ms) - var(--kl-t));animation-play-state:var(--kl-play)}
+@keyframes klBoardGlow{
+ from{box-shadow:0 0 0 2px #24160D,inset 0 0 0 2px var(--kl-brass),0 18px 40px rgba(0,0,0,.55),0 0 60px rgba(255,159,46,.10)}
+ to  {box-shadow:0 0 0 2px #24160D,inset 0 0 0 2px #FFD98A,0 18px 40px rgba(0,0,0,.55),0 0 70px 18px rgba(255,159,46,.55)}}
+/* 3) banner */
+.kl-banner{width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-radius:18px;
+  background:linear-gradient(90deg,#3B2618,#2A1D14);box-shadow:inset 0 0 0 2px var(--kl-brass),0 10px 28px rgba(0,0,0,.5),0 0 30px rgba(255,159,46,.35);color:var(--kl-on-bg);
+  animation:klBanner 420ms cubic-bezier(.2,.9,.3,1.15) both;animation-delay:calc(var(--kl-bd,1450ms) - var(--kl-t));animation-play-state:var(--kl-play)}
+.kl-banner .kl-b-txt{flex:1;text-align:left;line-height:1.15}
+.kl-banner .kl-b-h{font-family:var(--kl-font-display);font-weight:750;font-size:20px;white-space:nowrap;color:var(--kl-lit);text-shadow:0 0 12px rgba(255,159,46,.7)}
+.kl-banner .kl-b-s{font-size:13px;font-weight:700;color:var(--kl-ink-soft);margin-top:2px}
+.kl-banner .kl-b-ico{width:34px;height:46px;flex:none}
+.kl-banner .primary{min-width:104px}
+@keyframes klBanner{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+.kl-won #status{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}  /* stays aria-live for screen readers */
+.kl-won #next{display:none!important}   /* the banner carries Next */
+/* settled (re-render after the sequence, e.g. resize): final look, no motion */
+.kl-win.kl-settled,.kl-win.kl-settled .sq,.kl-win.kl-settled .pc svg{animation:none!important}
+.kl-win.kl-settled{box-shadow:0 0 0 2px #24160D,inset 0 0 0 2px #FFD98A,0 18px 40px rgba(0,0,0,.55),0 0 70px 18px rgba(255,159,46,.55)}
+.kl-win.kl-settled .sq.clue{filter:brightness(1.08)}
+/* reduced motion: no ripple, no scale, no slide. Everything lights at once with a short fade. */
+@media (prefers-reduced-motion:reduce){
+ .kl-win .sq.clue.kl-wl,.kl-win .sq.kl-ws .pc svg,.kl-win .sq.kl-ws:not(.clue)::after{animation:none!important}
+ .kl-win .sq.clue.kl-wl{filter:brightness(1.08);box-shadow:inset 0 0 0 2px #2A1407,inset 0 0 0 4.5px #FFE7A8,0 0 18px 6px rgba(255,159,46,.75)}
+ #board.kl-win{animation:klFade 200ms ease-out both;animation-delay:0ms;box-shadow:0 0 0 2px #24160D,inset 0 0 0 2px #FFD98A,0 18px 40px rgba(0,0,0,.55),0 0 70px 18px rgba(255,159,46,.55)}
+ .kl-banner{animation:klFade 200ms ease-out both;animation-delay:0ms}
+}
+@keyframes klFade{from{opacity:.6}to{opacity:1}}

@@ -1,0 +1,39 @@
+/* Knight Lights — Lantern Night FINAL tokens (Artist, Nov 20 2026).
+   Drop-in replacement for the THEME block in prototypes/knight-lights/index.html: same --kl-* names,
+   plus a few lantern-only tokens at the bottom (used by lantern.css / win.css). */
+:root{
+ --kl-bg-1:#0D1B24; --kl-bg-2:#13232C; --kl-bg-3:#1A2B33;      /* night sky, top -> bottom */
+ --kl-bg-glow:#5A3A1C;                                        /* warm lantern pool behind the board */
+ --kl-on-bg:#F4E7D0;                                          /* text on the night background */
+ --kl-ink:#F4E7D0; --kl-ink-soft:#C9B89C; --kl-ink-faint:#7F8A8F;  /* text on dark panels (cards) */
+ --kl-card:#22303A; --kl-card-edge:#3C4A50;
+ --kl-shadow:0 10px 28px rgba(0,0,0,.45); --kl-shadow-sm:0 4px 10px rgba(0,0,0,.4); --kl-shadow-accent:0 5px 0 #8A4A1C,0 10px 24px rgba(255,159,46,.35);
+ --kl-accent:#F0A04B; --kl-accent-ink:#2A1407;                /* amber: primary action ONLY */
+ --kl-ghost:rgba(255,231,190,.10); --kl-scrim:rgba(5,10,14,.72);
+ --kl-cell-light:#DDBB88; --kl-cell-dark:#946640;             /* maple vs oak: 2.73:1 (WCAG luminance ratio) */
+ --kl-clue-dark:#24180F;
+ --kl-clue:#24180F; --kl-clue-border:#B07A40; --kl-clue-ink:#F6E7C8;   /* unmet = ebony medallion, brass rim */
+ --kl-ok:#FFB54D; --kl-ok-bg:#FFD98A; --kl-ok-ink:#3A1C05;    /* met = lit lantern: amber fill, gold rim + check */
+ --kl-error:#FF5A3C; --kl-error-bg:#5E1A12; --kl-error-ink:#FFE1D6; --kl-attack:rgba(255,90,60,.30); --kl-clash:rgba(255,90,60,.30);
+ --kl-att-dot:#FFB54D; --kl-att-edge:#2A190E;                 /* attacked squares: ember dot with a dark rim, no fill */
+ --kl-preview:#FFE3A6; --kl-preview-edge:#2A190E;             /* would-be attacks: a hollow ring with a dark rim, no fill */
+ --kl-dot-min:6px; --kl-tap-ms:250; --kl-tap-move:10;
+ --kl-piece:#3A2416; --kl-piece-locked:#3A2416; --kl-hint-ring:#8FD6E8;  /* moonlight teal = hint / focus, never amber */
+ --kl-tile:#2C3B44; --kl-tile-locked:#1B262D;
+ --kl-font:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ --kl-font-display:"Fraunces",Georgia,serif;
+ --kl-radius-sm:7px; --kl-radius:12px; --kl-radius-lg:18px; --kl-radius-pill:999px;
+ --kl-space-1:4px; --kl-space-2:8px; --kl-space-3:12px; --kl-space-4:16px; --kl-space-5:24px;
+ --kl-tap:48px; --kl-board-gap:3px;
+ --kl-max:420px; --kl-mini:180px; --kl-mini-np:150px; --kl-pad-cta:30px; --kl-grid-cols:5; --kl-dialog:360px;
+ --kl-dot:8px; --kl-dot-clue:.24em; --kl-dot-gap:.1em; --kl-status-min:22px; --kl-tile-sm-min:13px;
+ --kl-fs-header:20px; --kl-fs-h2:18px; --kl-fs-body:14px; --kl-fs-ghost:14px; --kl-fs-ghost-round:18px;
+ --kl-fs-status:15px; --kl-fs-win:24px; --kl-fs-tray:30px; --kl-fs-primary:17px; --kl-fs-secondary:16px;
+ --kl-fs-hero-g:44px; --kl-fs-hero:24px; --kl-fs-sect:15px; --kl-fs-sect-pc:22px; --kl-fs-rng:13px;
+ --kl-fs-tile:19px; --kl-fs-tile-sm:11px; --kl-fs-foot:13px; --kl-fs-cnt:10px;
+ --kl-fs-intro-h:22px; --kl-fs-intro-p:16px; --kl-fs-mini-sq:28px; --kl-fs-clue-demo:24px;
+ --kl-fs-np-big:72px; --kl-fs-np-kick:13px; --kl-fs-np-h:24px; --kl-fs-np-p:17px; --kl-fs-done:16px;
+ /* lantern-only */
+ --kl-frame:#3B2618; --kl-frame-hi:#8A5A34; --kl-brass:#C9934A; --kl-glow:#FF9F2E; --kl-lit:#FFD98A;
+ --kl-win-ripple:1000ms; /* documentation only: the ripple length is the RIPPLE constant in win.js */
+}

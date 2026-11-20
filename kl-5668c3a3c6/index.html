@@ -2,26 +2,26 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>prototype L1-26</title><!-- set from GAME_TITLE at boot -->
 <style>
-/* ===== THEME: every colour, radius, font, size and spacing lives here. Reskin = edit this block only. ===== */
+/* ===== THEME (Lantern Night values copied from skin/palette.css, which also loads after this block): every colour, radius, font, size and spacing lives here. Reskin = edit this block only. ===== */
 :root{
- --kl-bg-1:#8A55C2; --kl-bg-2:#5E3594; --kl-bg-3:#3E2069;      /* page gradient, top -> bottom */
- --kl-on-bg:#FFFFFF;                                          /* text on the page background */
- --kl-ink:#1E1633; --kl-ink-soft:#4A3F66; --kl-ink-faint:#B3A9C4;
- --kl-card:#FFFFFF; --kl-shadow:0 8px 24px rgba(30,22,51,.25); --kl-shadow-sm:0 3px 8px rgba(30,22,51,.2); --kl-shadow-accent:0 4px 12px rgba(0,0,0,.25);
- --kl-accent:#FFC21F; --kl-accent-ink:#1E1633;                /* gold: primary action ONLY */
- --kl-ghost:rgba(255,255,255,.16); --kl-scrim:rgba(30,22,51,.55);
- --kl-cell-light:#F6F2FB; --kl-cell-dark:#CDBBE6;             /* light vs dark square: 1.6:1 (bishop shades must read) */
- --kl-clue-dark:#E6DCF3;                                      /* clue tile sitting on a dark square */
- --kl-clue:#FFFFFF; --kl-clue-border:#CFC3E0;
- --kl-ok:#2E9E5B; --kl-ok-bg:#E9F7EE;
- --kl-error:#D23B3B; --kl-error-bg:#FCE8E8; --kl-attack:#FFCFCF; --kl-clash:rgba(210,59,59,.22);
- --kl-att-dot:rgba(62,32,105,.42);   /* attacked squares: a centre dot only, no fill, so light vs dark stays 1.6:1 */
- --kl-preview:#5E3594;        /* would-be attacks while a square is held/hovered: a ring, no fill */
+ --kl-bg-1:#0D1B24; --kl-bg-2:#13232C; --kl-bg-3:#1A2B33;      /* page gradient, top -> bottom */
+ --kl-on-bg:#F4E7D0;                                          /* text on the page background */
+ --kl-ink:#F4E7D0; --kl-ink-soft:#C9B89C; --kl-ink-faint:#7F8A8F;
+ --kl-card:#22303A; --kl-shadow:0 10px 28px rgba(0,0,0,.45); --kl-shadow-sm:0 4px 10px rgba(0,0,0,.4); --kl-shadow-accent:0 5px 0 #8A4A1C,0 10px 24px rgba(255,159,46,.35);
+ --kl-accent:#F0A04B; --kl-accent-ink:#2A1407;                /* gold: primary action ONLY */
+ --kl-ghost:rgba(255,231,190,.10); --kl-scrim:rgba(5,10,14,.72);
+ --kl-cell-light:#DDBB88; --kl-cell-dark:#946640;             /* light vs dark square: 1.6:1 (bishop shades must read) */
+ --kl-clue-dark:#24180F;                                      /* clue tile sitting on a dark square */
+ --kl-clue:#24180F; --kl-clue-border:#B07A40;
+ --kl-ok:#FFB54D; --kl-ok-bg:#FFD98A;
+ --kl-error:#FF5A3C; --kl-error-bg:#5E1A12; --kl-attack:rgba(255,90,60,.30); --kl-clash:rgba(255,90,60,.30);
+ --kl-att-dot:#FFB54D;   /* attacked squares: a centre dot only, no fill, so light vs dark stays 1.6:1 */
+ --kl-preview:#FFE3A6;        /* would-be attacks while a square is held/hovered: a ring, no fill */
  --kl-dot-min:6px; --kl-tap-ms:250; --kl-tap-move:10;   /* clue dot floor; quick-tap limits (read by JS) */
- --kl-piece:#1E1633; --kl-piece-locked:#5E3594; --kl-hint-ring:#8A55C2;
- --kl-tile:#F3EDFA; --kl-tile-locked:#ECE8F1;
+ --kl-piece:#3A2416; --kl-piece-locked:#3A2416; --kl-hint-ring:#8FD6E8;
+ --kl-tile:#2C3B44; --kl-tile-locked:#1B262D;
  --kl-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
- --kl-radius-sm:6px; --kl-radius:12px; --kl-radius-lg:16px; --kl-radius-pill:999px;
+ --kl-radius-sm:7px; --kl-radius:12px; --kl-radius-lg:18px; --kl-radius-pill:999px;
  --kl-space-1:4px; --kl-space-2:8px; --kl-space-3:12px; --kl-space-4:16px; --kl-space-5:24px;
  --kl-tap:48px; --kl-board-gap:3px;
  --kl-max:420px; --kl-mini:180px; --kl-mini-np:150px; --kl-pad-cta:30px; --kl-grid-cols:5; --kl-dialog:360px;
@@ -138,7 +138,64 @@ header h1{margin:0;font-size:var(--kl-fs-header);font-weight:800;flex:1;text-ali
 @media (prefers-reduced-motion:reduce){.sq.point{animation:none}}
 #done .card{padding:var(--kl-space-5);text-align:center;font-size:var(--kl-fs-done);line-height:1.45}
 #donehints{color:var(--kl-ink-soft);font-size:var(--kl-fs-body)}
-</style></head><body>
+</style>
+<!-- LANTERN SKIN (Artist, Nov 20 2026): palette tokens override the THEME block above; delete the THEME block when merging. -->
+<link rel="stylesheet" href="skin/fonts.css"><link rel="stylesheet" href="skin/palette.css">
+<link rel="stylesheet" href="skin/lantern.css"><link rel="stylesheet" href="skin/win.css">
+<script src="skin/pieces.js"></script><script src="skin/win.js"></script>
+</head><body>
+<section class="screen" id="titlescreen" aria-label="Title">
+ <div class="halo" aria-hidden="true"></div>
+ <div class="lantern"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 170" class="kl-lantern" aria-hidden="true" focusable="false">
+
+<defs>
+ <linearGradient id="klBrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C47A"/><stop offset=".5" stop-color="#C98A3E"/><stop offset="1" stop-color="#8A5422"/></linearGradient>
+ <linearGradient id="klBrassH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8A5422"/><stop offset=".35" stop-color="#F2C47A"/><stop offset=".6" stop-color="#C98A3E"/><stop offset="1" stop-color="#7A4A1C"/></linearGradient>
+ <radialGradient id="klGlass" cx="50%" cy="58%" r="62%"><stop offset="0" stop-color="#FFF6D8"/><stop offset=".45" stop-color="#FFD27A"/><stop offset="1" stop-color="#D9822C"/></radialGradient>
+ <radialGradient id="klFlame" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".45" stop-color="#FFE7A0"/><stop offset="1" stop-color="#FF9A2E"/></radialGradient>
+</defs>
+<g stroke="#3A2416" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+ 
+ <circle cx="60" cy="12" r="8.5" fill="none" stroke="url(#klBrassH)" stroke-width="5"/>
+ <circle cx="60" cy="12" r="11" fill="none" stroke-width="1.6"/>
+ <circle cx="60" cy="12" r="6" fill="none" stroke-width="1.6"/>
+ <path d="M54 22 H66 V30 H54 Z" fill="url(#klBrass)"/>
+ 
+ <path d="M20 50 C26 40 34 33 42 30 H78 C86 33 94 40 100 50 Z" fill="url(#klBrass)"/>
+ <path d="M36 44 H84" fill="none" stroke-width="2" stroke="#8A5422"/>
+ <rect x="16" y="49" width="88" height="9" rx="3" fill="url(#klBrassH)"/>
+ 
+ <rect x="24" y="58" width="72" height="76" fill="url(#klGlass)"/>
+</g>
+
+<g class="kl-flame-wrap">
+ <ellipse cx="60" cy="96" rx="26" ry="30" fill="#FFF3C8" opacity=".55"/>
+ <path class="kl-flame" d="M60 74 C68.5 86 72.5 95 68.5 105 C66.5 110 63.4 112.6 60 112.6 C56.6 112.6 53.5 110 51.5 105 C47.5 95 51.5 86 60 74 Z" fill="url(#klFlame)" stroke="#E07A1E" stroke-width="1.6"/>
+ <path d="M60 90 C63.5 96 64.5 101 62.6 105.5 C61.8 107.4 60.9 108.2 60 108.2 C59.1 108.2 58.2 107.4 57.4 105.5 C55.5 101 56.5 96 60 90 Z" fill="#FFFFFF"/>
+ <rect x="54.5" y="112" width="11" height="22" rx="2" fill="#FFF5E2" stroke="#3A2416" stroke-width="2.4"/>
+</g>
+<g stroke="#3A2416" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+ 
+ <path d="M30 66 L38 64 L31 104 Z" fill="#FFFFFF" opacity=".28" stroke="none"/>
+ <path d="M77 68 L83 67 L79 88 Z" fill="#FFFFFF" opacity=".22" stroke="none"/>
+ 
+ <rect x="21" y="58" width="7" height="76" fill="url(#klBrassH)"/>
+ <rect x="92" y="58" width="7" height="76" fill="url(#klBrassH)"/>
+ <rect x="46" y="58" width="3.6" height="76" fill="url(#klBrass)" stroke-width="2"/>
+ <rect x="70.4" y="58" width="3.6" height="76" fill="url(#klBrass)" stroke-width="2"/>
+ <path d="M28 96 H46 M74 96 H92" stroke="url(#klBrass)" stroke-width="3.4"/>
+ <path d="M28 96 H46 M74 96 H92" stroke-width="1" fill="none"/>
+ 
+ <rect x="16" y="133" width="88" height="9" rx="3" fill="url(#klBrassH)"/>
+ <path d="M24 142 H96 L89 154 H31 Z" fill="url(#klBrass)"/>
+ <path d="M30 154 V160 H40 V154 M80 154 V160 H90 V154" fill="url(#klBrass)"/>
+</g>
+</svg></div>
+ <h1 class="kl-name" id="klName"></h1><!-- filled from GAME_TITLE at boot: never bake the name into art -->
+ <p class="strap">Light every number. Hide every piece.</p>
+ <div class="btns"><button class="primary" id="tPlay">Play</button><button class="secondary" id="tLevels">Levels</button></div>
+ <p class="by">by Plumwit</p>
+</section>
 <section class="screen" id="intro" aria-label="How to play">
  <header><span></span><h1>How to play</h1><button class="ghost" id="skip">Skip</button></header>
  <div class="card"><div class="mini" id="mini"></div><h2 id="ihead"></h2><p id="ibody"></p></div>
@@ -303,7 +360,7 @@ function initialBoard(lv,state,storedBoard){let placed={},tray=freshTray(lv),loc
   return{placed,tray,locked};}
 const KL_DEBUG = true; // set false / strip for release
 // true when a debug/review param is actually in the URL (shows the corner DEBUG tag)
-function debugUsed(search,debug){if(!debug)return false;const Q=typeof search==="string"?new URLSearchParams(search):search;return["unlock","level","screen","state","hint"].some(k=>Q.has(k));}
+function debugUsed(search,debug){if(!debug)return false;const Q=typeof search==="string"?new URLSearchParams(search):search;return["unlock","level","screen","state","hint","name"].some(k=>Q.has(k));}
 function readDebugParams(search,debug){if(!debug)return{unlockAll:false,level:0,screen:null,state:null,hint:0};
   const Q=typeof search==="string"?new URLSearchParams(search):search;
   return{unlockAll:Q.get("unlock")==="all",level:+Q.get("level")||0,screen:Q.get("screen"),state:Q.get("state"),hint:+Q.get("hint")||0};}
@@ -312,7 +369,7 @@ if(typeof module!=="undefined")module.exports={dotMode,clashText,isQuickTap,atta
 if(typeof document!=="undefined"){
 // The ONE place pieces are drawn. Inline SVG silhouettes (fill currentColor) so Android WebView never shows empty glyph boxes.
 // Piece outlines based on Colin M.L. Burnett's public-domain chess figures (Wikimedia 'cburnett').
-const PIECE_SVG={
+const PIECE_SVG=(typeof KL_PIECE_SVG!=="undefined")?KL_PIECE_SVG:/*fallback: original glyphs*/{
  R:'<svg viewBox="0 0 45 45" class="kl-svg" aria-hidden="true" focusable="false"><g fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd" transform="translate(0,0.3)"><path stroke-linecap="butt" d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z"/><path stroke-linecap="butt" d="M 12.5,32 L 14,29.5 L 31,29.5 L 32.5,32 L 12.5,32 z"/><path stroke-linecap="butt" d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z"/><path stroke-linecap="butt" stroke-linejoin="miter" d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z"/><path stroke-linecap="butt" d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z"/><path stroke-linecap="butt" d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 11,14 z"/></g></svg>',
  B:'<svg viewBox="0 0 45 45" class="kl-svg" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,0.6)"><g fill="currentColor" stroke="currentColor" stroke-linecap="butt"><path d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z"/><path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z"/><path d="M 25 8 A 2.5 2.5 0 1 1 20,8 A 2.5 2.5 0 1 1 25 8 z"/></g><path class="cut" d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18" fill="none" stroke-linejoin="miter"/></g></svg>',
  N:'<svg viewBox="0 0 45 45" class="kl-svg" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd" transform="translate(0,0.3)"><path fill="currentColor" stroke="currentColor" d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"/><path fill="currentColor" stroke="currentColor" d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"/><path class="cut" d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"/><path class="cut" transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)" d="M 15 15.5 A 0.5 1.5 0 1 1 14,15.5 A 0.5 1.5 0 1 1 15 15.5 z"/></g></svg>',
@@ -333,8 +390,15 @@ function save(){if(suppressSave)return;saveProgress(localStorage,prog);solvedSet
 const unlocked=i=>isUnlocked(i,solvedSet,unlockAll);
 const $=id=>document.getElementById(id);
 const token=(name,fallback)=>{const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();return v||fallback;};
-document.title=GAME_TITLE+": prototype L1-26";
-if(debugUsed(location.search,KL_DEBUG)){const t=document.createElement("div");t.id="dbgTag";t.textContent="DEBUG";t.title="KL_DEBUG params in use (prototype only; release must set KL_DEBUG=false)";document.body.appendChild(t);}$("gameTitle").textContent=GAME_TITLE;
+const SHOW_TITLE=(KL_DEBUG&&Q.get("name"))||GAME_TITLE; // ?name= is a review-only override (KL_DEBUG) to prove the title is live text
+document.title=GAME_TITLE+": prototype L1-26";if(SHOW_TITLE!==GAME_TITLE)document.title=SHOW_TITLE+": prototype L1-26";
+// Title text: one span per word, the last word glows. Shrinks to fit so any name (e.g. "Checkglow") works.
+function setTitleName(el,name){el.innerHTML="";el.dataset.klTitle=name;const w=name.trim().split(/\s+/);
+  w.forEach((x,i)=>{const sp=document.createElement("span");sp.className="w"+(i===w.length-1?" glow":"");sp.textContent=x;el.appendChild(sp);});}
+function fitTitle(el){for(const sp of el.children){sp.style.fontSize="";let f=parseFloat(getComputedStyle(sp).fontSize),max=el.parentElement.clientWidth-80; // italic overhang + glow sit outside the measured box
+  while(sp.scrollWidth>max&&f>24){f-=2;sp.style.fontSize=f+"px";}}}
+function showTitle(){show("titlescreen");fitTitle($("klName"));}
+if(debugUsed(location.search,KL_DEBUG)){const t=document.createElement("div");t.id="dbgTag";t.textContent="DEBUG";t.title="KL_DEBUG params in use (prototype only; release must set KL_DEBUG=false)";document.body.appendChild(t);}$("gameTitle").textContent=GAME_TITLE;$("gameTitle").textContent=SHOW_TITLE;setTitleName($("klName"),SHOW_TITLE);
 $("heroG").innerHTML=pieceHTML("R")+pieceHTML("B")+pieceHTML("N");$("doneG").innerHTML=$("heroG").innerHTML;
 for(const id of["heroG","doneG"])for(const s of $(id).querySelectorAll(".pc"))s.style.color="inherit";
 function show(id){for(const s of document.querySelectorAll(".screen"))s.classList.toggle("on",s.id===id);}
@@ -358,7 +422,7 @@ function miniBoard(host,lv,placed,opts){opts=opts||{};host.innerHTML="";host.sty
 const INTRO=[
  {h:"Place every piece",b:"Tap a square to place a piece; tap it again to take it back. Hold a square to look before placing. A rook attacks its whole row and column: the lit squares (dots).",lv:{size:4,clues:{},pieces:{R:1}},pl:{"1,1":"R"}},
  {h:"Numbers count attacks",b:"A number shows how many pieces attack it. Numbers never block. Dots under it: \u25CF attacking now, \u25CB still needed.",lv:{size:4,clues:{"0,1":1,"0,3":1,"2,0":2},pieces:{R:1}},pl:{"0,0":"R"}},
- {h:"No piece attacks another",b:"Pieces in red attack each other. Use every piece and turn every number green to win!",lv:{size:4,clues:{"2,1":1},pieces:{R:2}},pl:{"0,0":"R","0,3":"R"}}];
+ {h:"No piece attacks another",b:"Pieces in red attack each other. Use every piece and light every number to win!",lv:{size:4,clues:{"2,1":1},pieces:{R:2}},pl:{"0,0":"R","0,3":"R"}}];
 function renderIntro(){const s=INTRO[introStep];miniBoard($("mini"),s.lv,s.pl);
   $("ihead").textContent=s.h;$("ibody").textContent=s.b;
   [...$("dots").children].forEach((d,i)=>d.classList.toggle("on",i===introStep));
@@ -401,9 +465,9 @@ function showNewPiece(t){$("npName").textContent="The "+PIECE_NAME[t];$("npTip")
 $("npOk").onclick=()=>$("newpiece").classList.add("hidden");
 $("newpiece").onclick=e=>{if(e.target===$("newpiece"))$("newpiece").classList.add("hidden");};
 // -- game --
-let note="",hoverKey=null,focusKey=null,press=null,noteTimer=0,hs={free:0,ad:0};
+let note="",hoverKey=null,focusKey=null,press=null,noteTimer=0,hs={free:0,ad:0},winFor=null; // winFor: level id whose win sequence already played
 function flashNote(t){note=t;clearTimeout(noteTimer);noteTimer=setTimeout(()=>{if(note===t&&$("game").classList.contains("on")){note="";render();}},2500);}
-function start(i,state){cur=i;const lv=LEVELS[i],t=pieceType(lv);
+function start(i,state){cur=i;winFor=null;if(window.KLWin)KLWin.reset();const lv=LEVELS[i],t=pieceType(lv);
   const sb=boardFor(prog,lv.id);hs=sb?{...sb.hs}:{free:0,ad:0};
   const init=initialBoard(lv,state,sb);placed=init.placed;tray=init.tray;sel=null;locked=init.locked;flashKey=null;note="";hoverKey=null;focusKey=null;press=null;
   $("lvnum").textContent="Level "+(i+1);$("title").textContent=lv.title;$("tip").textContent=lv.tip;show("game");render();
@@ -441,6 +505,9 @@ function render(){const lv=LEVELS[cur],n=lv.size,ev=evaluate(lv,placed),b=$("boa
     b.appendChild(d);}
   const tr=$("tray");tr.innerHTML="";tray.forEach((t,i)=>{const p=document.createElement("button");p.className="tp"+(i===sel?" sel":"");p.innerHTML=pieceHTML(t);
     p.setAttribute("aria-label",PIECE_NAME[t]);p.onclick=()=>{sel=sel===i?null:i;note="";render();};tr.appendChild(p);});
+  // WIN MOMENT (skin/win.js): ripple from the last placed piece, board glow, banner with Next. Plays once per solve; re-renders settle.
+  if(ev.solved&&window.KLWin){const wo={origin:focusKey,sub:"Level "+(cur+1)+" \u00B7 "+lv.title,nextLabel:cur===LEVELS.length-1?"Finish":"Next",onNext:()=>$("next").click(),after:$("status")};
+    if(winFor!==lv.id){winFor=lv.id;KLWin.play(b,wo);}else KLWin.settle(b,wo);}
   if(ev.solved&&!solvedSet.has(lv.id)){solvedSet.add(lv.id);prog.solved=[...solvedSet];}
   persistBoard(lv,ev);save();
   const st=$("status");st.className=ev.solved?"win":"";
@@ -470,12 +537,13 @@ $("next").onclick=()=>cur+1<LEVELS.length?start(cur+1):showDone();
 function doRestart(){const lv=LEVELS[cur];locked=new Set();if(boardFor(prog,lv.id)){setBoard(prog,lv.id,hs.free||hs.ad?{placed:{},locked:[],tray:freshTray(lv),hs}:null);save();}start(cur);}
 $("restart").onclick=()=>{if(Object.keys(placed).length&&!evaluate(LEVELS[cur],placed).solved)askConfirm("Clear the board and start this level again?","Restart",doRestart);else doRestart();};
 // '‹ Levels' never loses work: every level's board in progress is saved (prog.boards[id]) and comes back when you reopen it.
+$("tPlay").onclick=()=>{if(!prog.introSeen)openIntro("play");else playNext();};$("tLevels").onclick=showSelect;
 $("back").onclick=showSelect;$("toSelect").onclick=showSelect;$("play").onclick=playNext;
 // debug/review params are read only when KL_DEBUG is true (see readDebugParams). Debug setup never calls save() or counts hints.
 suppressSave=true;
-if(dbg.screen==="intro")openIntro("select");else if(dbg.screen==="done")showDone();else if(dbg.screen==="select")showSelect();
+if(dbg.screen==="title")showTitle();else if(dbg.screen==="intro")openIntro("select");else if(dbg.screen==="done")showDone();else if(dbg.screen==="select")showSelect();
 else if(dbg.level>=1&&dbg.level<=LEVELS.length&&unlocked(dbg.level-1)){start(dbg.level-1,dbg.state);if(dbg.hint)applyDebugHints(dbg.hint);}
-else if(!prog.introSeen)openIntro("play");else showSelect();
+else showTitle(); // title first; Play opens the intro the first time
 suppressSave=false;
 addEventListener("resize",()=>{if($("game").classList.contains("on"))render();});
 addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible")return;save();if($("select").classList.contains("on"))showSelect();});}
