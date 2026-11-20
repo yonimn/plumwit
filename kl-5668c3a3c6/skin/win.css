@@ -34,6 +34,7 @@
 .kl-banner .kl-b-s{font-size:13px;font-weight:700;color:var(--kl-ink-soft);margin-top:2px}
 .kl-banner .kl-b-ico{width:34px;height:46px;flex:none}
 .kl-banner .primary{min-width:104px}
+.kl-banner:not(.kl-armed) button{pointer-events:none}
 @keyframes klBanner{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
 .kl-won #status{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}  /* stays aria-live for screen readers */
 .kl-won #next{display:none!important}   /* the banner carries Next */

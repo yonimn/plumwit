@@ -17,7 +17,7 @@
  --kl-error:#FF5A3C; --kl-error-bg:#5E1A12; --kl-error-ink:#FFE1D6; --kl-attack:rgba(255,90,60,.30); --kl-clash:rgba(255,90,60,.30);
  --kl-att-dot:#FFB54D; --kl-att-edge:#2A190E;                 /* attacked squares: ember dot with a dark rim, no fill */
  --kl-preview:#FFE3A6; --kl-preview-edge:#2A190E;             /* would-be attacks: a hollow ring with a dark rim, no fill */
- --kl-dot-min:6px; --kl-tap-ms:250; --kl-tap-move:10;
+ --kl-dot-min:7px; --kl-diamond-min:8px; --kl-tap-ms:250; --kl-tap-move:10;
  --kl-piece:#3A2416; --kl-piece-locked:#3A2416; --kl-hint-ring:#8FD6E8;  /* moonlight teal = hint / focus, never amber */
  --kl-tile:#2C3B44; --kl-tile-locked:#1B262D;
  --kl-font:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;

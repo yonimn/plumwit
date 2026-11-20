@@ -32,7 +32,7 @@ header h1{font-size:22px}
 .sq.clue.ok .num{text-shadow:none}
 .cd i{border-color:currentColor;opacity:.95}
 .cd i.f{background:currentColor}
-.cd i.x{background:var(--kl-error);border:1.5px solid #FFE1D6;border-radius:2px;transform:rotate(45deg) scale(.9)}
+.cd i.x{width:max(var(--kl-diamond-min),var(--kl-dot-clue));height:max(var(--kl-diamond-min),var(--kl-dot-clue));background:var(--kl-error);border:1.5px solid #FFE1D6;border-radius:2px;transform:rotate(45deg)}
 .cd .cdt.x{color:#FFB3A3}
 /* ---- attack marks (latest prototype rules: dots + rings, NO fill) ---- */
 .sq.att:not(.clue):not(.pv)::after{width:22%;height:22%;background:var(--kl-att-dot);box-shadow:0 0 0 2px var(--kl-att-edge),0 0 8px 2px rgba(255,181,77,.55)}

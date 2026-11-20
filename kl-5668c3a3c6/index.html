@@ -76,7 +76,7 @@ header h1{margin:0;font-size:var(--kl-fs-header);font-weight:800;flex:1;text-ali
 .sect h3 .pc{font-size:var(--kl-fs-sect-pc)}
 .sect h3 span.rng{font-weight:600;color:var(--kl-ink-soft);font-size:var(--kl-fs-rng)}
 .grid{display:grid;grid-template-columns:repeat(var(--kl-grid-cols),1fr);gap:var(--kl-space-2)}
-.tile{aspect-ratio:1.15;border:0;border-radius:var(--kl-radius);background:var(--kl-tile);color:var(--kl-ink);font-size:var(--kl-fs-tile);font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0}
+.tile{aspect-ratio:1.15;min-height:44px;border:0;border-radius:var(--kl-radius);background:var(--kl-tile);color:var(--kl-ink);font-size:var(--kl-fs-tile);font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0}
 .tile small{font-size:var(--kl-fs-tile-sm);font-weight:700;color:var(--kl-ok);min-height:var(--kl-tile-sm-min);display:flex;align-items:center;justify-content:center}
 .tile small .ico-svg{width:12px;height:12px}
 .tile.locked{background:var(--kl-tile-locked);color:var(--kl-ink-faint);cursor:default}
@@ -101,8 +101,8 @@ header h1{margin:0;font-size:var(--kl-fs-header);font-weight:800;flex:1;text-ali
 #newpiece p,#confirm p{margin:0;font-size:var(--kl-fs-np-p);line-height:1.4}
 #newpiece .mini{width:var(--kl-mini-np)}
 #confirm .btns{display:flex;gap:var(--kl-space-3);justify-content:center;flex-wrap:wrap}
-#confirm .btns.yesfirst #cfYes{order:-1}
-#cfYes:disabled{opacity:.5}
+/* rewarded-ad sheet: neutral (Families): No thanks first, both buttons identical, no lock */
+#confirm .btns.neutral button{flex:1 1 0;min-width:0;font-size:var(--kl-fs-secondary);font-weight:700}
 .sq.point{box-shadow:inset 0 0 0 4px var(--kl-preview);animation:klpoint 1.2s ease-in-out 3}
 @keyframes klpoint{50%{box-shadow:inset 0 0 0 7px var(--kl-preview)}}
 @media (prefers-reduced-motion:reduce){.sq.point{animation:none}}
@@ -130,6 +130,12 @@ header h1{margin:0;font-size:var(--kl-fs-header);font-weight:800;flex:1;text-ali
  #game header{gap:var(--kl-space-1)}
  #game header h1{font-size:var(--kl-fs-h2);white-space:nowrap}
  #game header .ghost:not(.round){padding-left:10px;padding-right:10px}
+ /* r3: tighten level select so min-height 44px tiles don't add scroll at 320x640 (was 28px) */
+ #select{gap:var(--kl-space-1);padding-top:var(--kl-space-2);padding-bottom:var(--kl-space-2)}
+ #select .hero{margin-top:0}
+ #sections{gap:var(--kl-space-2)}
+ #select .sect{padding:var(--kl-space-2)}
+ #select .sect h3{margin-bottom:var(--kl-space-1)}
 }
 </style>
 </head><body>
@@ -417,7 +423,8 @@ function renderIntro(){const s=INTRO[introStep];miniBoard($("mini"),s.lv,s.pl);
   [...$("dots").children].forEach((d,i)=>d.classList.toggle("on",i===introStep));
   $("inext").textContent=introStep===INTRO.length-1?(introReturn==="game"?"Back to puzzle":"Play"):"Next";}
 function openIntro(ret){introStep=0;introReturn=ret;renderIntro();show("intro");}
-function closeIntro(){prog.introSeen=true;save();if(introReturn==="game")show("game");else if(introReturn==="select")showSelect();else playNext();}
+let pendingStart=null;
+function closeIntro(){prog.introSeen=true;save();if(introReturn==="game")show("game");else if(introReturn==="select")showSelect();else if(introReturn==="level"){const i=pendingStart;pendingStart=null;if(i!=null)start(i);}else playNext();}
 $("inext").onclick=()=>{if(introStep<INTRO.length-1){introStep++;renderIntro();}else closeIntro();};
 $("skip").onclick=closeIntro;$("help1").onclick=()=>openIntro("select");$("help2").onclick=()=>openIntro("game");
 // -- level select --
@@ -438,7 +445,7 @@ let cfAction=null;
 let cfStatus=null;
 // opts.ad: rewarded sheet order (question, Yes, No) and Yes only pressable >= 1 s after it opens (Tessellogic 1.0.3 §4 anti-double-fire)
 function askConfirm(text,yesLabel,action,noLabel,opts){opts=opts||{};cfAction=action;cfStatus={html:$("status").innerHTML,cls:$("status").className,note};$("cfText").textContent=text;$("cfYes").textContent=yesLabel;$("cfNo").textContent=noLabel||"Cancel";
-  $("confirm").querySelector(".btns").classList.toggle("yesfirst",!!opts.ad);const y=$("cfYes");y.disabled=!!opts.ad;if(opts.ad)setTimeout(()=>{y.disabled=false;},1000);
+  $("confirm").querySelector(".btns").classList.toggle("neutral",!!opts.ad);const y=$("cfYes");y.disabled=false;y.className=opts.ad?"secondary":"primary";$("cfNo").className="secondary";
   $("confirm").classList.remove("hidden");$("cfNo").focus();}
 function closeConfirm(){$("confirm").classList.add("hidden");cfAction=null;}
 // Cancel / No / Escape / scrim: put back exactly the status line that was showing when the dialog opened
@@ -456,7 +463,11 @@ $("newpiece").onclick=e=>{if(e.target===$("newpiece"))$("newpiece").classList.ad
 // -- game --
 let note="",hoverKey=null,focusKey=null,press=null,noteTimer=0,hs={free:0,ad:0},winFor=null; // winFor: level id whose win sequence already played
 function flashNote(t){note=t;clearTimeout(noteTimer);noteTimer=setTimeout(()=>{if(note===t&&$("game").classList.contains("on")){note="";render();}},2500);}
-function start(i,state){cur=i;winFor=null;if(window.KLWin)KLWin.reset();const lv=LEVELS[i],t=pieceType(lv);
+let startingFromBoot=false;
+function start(i,state){
+  // First-time Title → Levels → a level: show the intro once, then start that level (QA r3 F3).
+  if(!prog.introSeen&&state==null&&!startingFromBoot){pendingStart=i;openIntro("level");return;}
+  cur=i;winFor=null;if(window.KLWin)KLWin.reset();const lv=LEVELS[i],t=pieceType(lv);
   const sb=boardFor(prog,lv.id);hs=sb?{...sb.hs}:{free:0,ad:0};
   const init=initialBoard(lv,state,sb);placed=init.placed;tray=init.tray;sel=null;locked=init.locked;flashKey=null;note="";hoverKey=null;focusKey=null;press=null;
   $("lvnum").textContent="Level "+(i+1);$("title").textContent=lv.title;$("tip").textContent=lv.tip;show("game");render();
@@ -508,7 +519,7 @@ function render(){const lv=LEVELS[cur],n=lv.size,ev=evaluate(lv,placed),b=$("boa
   if(hoverKey&&!placed[hoverKey])setPreview(hoverKey,true);else hoverKey=null;}
 function hint(){const lv=LEVELS[cur];if(evaluate(lv,placed).solved)return;const kind=hintKind(cur,hs);
   // Rewarded placeholder: always player-started Yes/No, never auto-plays. The real build plays kl_rewarded_hint / kl_rewarded_reveal2 on Yes.
-  if(kind==="ad"){const n=adReveal(lv);askConfirm("An ad would play here. Watch it to "+(n>1?"reveal 2 pieces?":"get a hint?"),"Yes",()=>grantHint("ad"),"No",{ad:true});}
+  if(kind==="ad"){const n=adReveal(lv);askConfirm("An ad would play here. Watch it to "+(n>1?"reveal 2 pieces?":"get a hint?"),"Watch ad",()=>grantHint("ad"),"No thanks",{ad:true});}
   else grantHint(kind);}
 function placeHints(lv,n){let mv=null,removed=0,got=0;for(let h=0;h<n;h++){if(evaluate(lv,placed).solved)break;const m=applyHint(lv,placed,tray,locked);if(!m)break;mv=m;got++;removed+=m.removed.length;}return{mv,got,removed};}
 function grantHint(kind){const lv=LEVELS[cur];if(evaluate(lv,placed).solved)return;const nm=PIECE_NAME[pieceType(lv)];
@@ -529,11 +540,11 @@ $("restart").onclick=()=>{if(Object.keys(placed).length&&!evaluate(LEVELS[cur],p
 $("tPlay").onclick=()=>{if(!prog.introSeen)openIntro("play");else playNext();};$("tLevels").onclick=showSelect;
 $("back").onclick=showSelect;$("toSelect").onclick=showSelect;$("play").onclick=playNext;
 // debug/review params are read only when KL_DEBUG is true (see readDebugParams). Debug setup never calls save() or counts hints.
-suppressSave=true;
+suppressSave=true;startingFromBoot=true;
 if(dbg.screen==="title")showTitle();else if(dbg.screen==="intro")openIntro("select");else if(dbg.screen==="done")showDone();else if(dbg.screen==="select")showSelect();
 else if(dbg.level>=1&&dbg.level<=LEVELS.length&&unlocked(dbg.level-1)){start(dbg.level-1,dbg.state);if(dbg.hint)applyDebugHints(dbg.hint);}
-else showTitle(); // title first; Play opens the intro the first time, then the next unsolved level
-suppressSave=false;
+else showTitle(); // title first; Play opens the intro the first time, then the next unsolved level. Levels → L1 also shows the intro if introSeen is false.
+suppressSave=false;startingFromBoot=false;
 addEventListener("resize",()=>{if($("game").classList.contains("on"))render();});
 addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible")return;save();if($("select").classList.contains("on"))showSelect();});}
 </script></body></html>

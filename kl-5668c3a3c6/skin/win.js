@@ -7,7 +7,18 @@
    Storyboards/tests: set window.KL_WIN_FREEZE = <ms> before play() to freeze the whole sequence at that time. */
 (function(){
  var RIPPLE=1000, STEP_MAX=260, GLOW_AFTER=300, BANNER_AFTER=250; // ripple always ~1 s across the board, whatever its size
+ var BANNER_DUR=420; // must match klBanner in win.css
+ // klBanner uses cubic-bezier(.2,.9,.3,1.15): opacity 0.8 at ~0.245 of the 420 ms fade (~103 ms after the banner starts, ~1.2 s after the win on a typical board)
+ var BANNER_80=Math.round(BANNER_DUR*0.245), RM_ARM=200, armTimer=null, armed=false;
  function rm(){return window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;}
+ function armAt(bd){return rm()?RM_ARM:(bd+BANNER_80);}
+ function clearArm(){if(armTimer){clearTimeout(armTimer);armTimer=null;}}
+ function setArmed(el,on){armed=!!on;if(!el)return;el.classList.toggle("kl-armed",armed);var btn=el.querySelector("button");if(!btn)return;
+  btn.disabled=!armed;if(armed)btn.removeAttribute("aria-disabled");else btn.setAttribute("aria-disabled","true");btn.setAttribute("data-armed",armed?"1":"0");}
+ function scheduleArm(el,bd,immediate){clearArm();var t=immediate?0:armAt(bd);
+  if(window.KL_WIN_FREEZE!=null){setArmed(el,window.KL_WIN_FREEZE>=t);return;}
+  if(t<=0){setArmed(el,true);return;}
+  setArmed(el,false);armTimer=setTimeout(function(){armTimer=null;setArmed(el,true);},t);}
  function lantern(){return '<svg class="kl-b-ico" viewBox="0 0 30 40" aria-hidden="true"><circle cx="15" cy="4" r="3" fill="none" stroke="#C9934A" stroke-width="2"/><path d="M5 12 Q15 5 25 12 Z" fill="#C9934A" stroke="#2A1407" stroke-width="1.4"/><rect x="6" y="12" width="18" height="20" rx="1.5" fill="#FFD98A" stroke="#2A1407" stroke-width="1.4"/><path d="M15 15 C19 20 19 24 15 28 C11 24 11 20 15 15Z" fill="#fff" stroke="#E07A1E" stroke-width="1"/><path d="M10.5 12V32M19.5 12V32" stroke="#C9934A" stroke-width="1.6"/><path d="M5 32H25L22 37H8Z" fill="#C9934A" stroke="#2A1407" stroke-width="1.4"/></svg>';}
  function cells(b){var c=[].slice.call(b.children),n=Math.round(Math.sqrt(c.length));return{c:c,n:n};}
  function apply(b,o){
@@ -26,13 +37,14 @@
   el.innerHTML=lantern()+'<div class="kl-b-txt"><div class="kl-b-h"></div><div class="kl-b-s"></div></div><button class="primary" type="button"></button>';
   el.querySelector(".kl-b-h").textContent=o.title||"All lanterns lit!";
   el.querySelector(".kl-b-s").textContent=o.sub||"";
-  var btn=el.querySelector("button");btn.textContent=o.nextLabel||"Next";btn.onclick=function(){if(o.onNext)o.onNext();};
+  var btn=el.querySelector("button");btn.textContent=o.nextLabel||"Next";
+  btn.onclick=function(){if(armed&&o.onNext)o.onNext();};
   var after=o.after||b;after.insertAdjacentElement("afterend",el);document.body.classList.add("kl-won");return el;}
  function freeze(){if(window.KL_WIN_FREEZE!=null){var r=document.documentElement.style;r.setProperty("--kl-t",window.KL_WIN_FREEZE+"ms");r.setProperty("--kl-play","paused");}}
  window.KLWin={
-  play:function(b,o){o=o||{};freeze();var t=apply(b,o);banner(b,o,t.bd);return t;},
+  play:function(b,o){o=o||{};freeze();var t=apply(b,o);var el=banner(b,o,t.bd);scheduleArm(el,t.bd,false);return t;},
   settle:function(b,o){o=o||{};apply(b,o);b.classList.add("kl-settled");
-   if(!document.getElementById("klWinBanner"))banner(b,o,0);document.getElementById("klWinBanner").style.animation="none";},
-  reset:function(){var e=document.getElementById("klWinBanner");if(e)e.remove();document.body.classList.remove("kl-won");}
+   if(!document.getElementById("klWinBanner"))banner(b,o,0);var el=document.getElementById("klWinBanner");el.style.animation="none";scheduleArm(el,0,true);},
+  reset:function(){clearArm();setArmed(null,false);var e=document.getElementById("klWinBanner");if(e)e.remove();document.body.classList.remove("kl-won");}
  };
 })();
